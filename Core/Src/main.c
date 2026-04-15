@@ -33,10 +33,12 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <string.h>
 #include "lcd.h"
 #include "w25qxx.h"
 #include "hid_bootloader.h"
 #include "usb_device.h"
+#include "SDcard.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -73,7 +75,7 @@ void PeriphCommonClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 void ExitRun0Mode(void) {
-    // 부트로더 진입 체크를 사용하지 않으므로 아무 동작도 하지 않음
+	// 부트로더 진입 체크를 사용하지 않으므로 아무 동작도 하지 않음
 }
 
 void LED_Blink(uint32_t delay) {
@@ -100,9 +102,6 @@ int main(void)
 
   /* Enable I-Cache---------------------------------------------------------*/
   SCB_EnableICache();
-
-  /* Enable D-Cache---------------------------------------------------------*/
-  SCB_EnableDCache();
 
   /* MCU Configuration--------------------------------------------------------*/
 
@@ -146,9 +145,9 @@ int main(void)
   MX_TIM16_Init();
   MX_FATFS_Init();
   /* USER CODE BEGIN 2 */
-  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
+	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
 	LCD_Test();
-
+	SDCard_Test();
   /* USER CODE END 2 */
 
   /* Infinite loop */

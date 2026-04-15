@@ -10,9 +10,9 @@
 ../Drivers/BSP/ST7735/lcd.c:192:6:LCD_Light	48	static
 ../Drivers/BSP/ST7735/lcd.c:240:6:LCD_ShowChar	128	dynamic
 ../Drivers/BSP/ST7735/lcd.c:324:6:LCD_ShowString	40	static
-../Drivers/BSP/ST7735/lcd.c:339:16:lcd_init	16	static
-../Drivers/BSP/ST7735/lcd.c:346:16:lcd_gettick	8	static
-../Drivers/BSP/ST7735/lcd.c:351:16:lcd_writereg	32	static
-../Drivers/BSP/ST7735/lcd.c:365:16:lcd_readreg	24	static
-../Drivers/BSP/ST7735/lcd.c:379:16:lcd_senddata	24	static
-../Drivers/BSP/ST7735/lcd.c:390:16:lcd_recvdata	24	static
+../Drivers/BSP/ST7735/lcd.c:341:16:lcd_init	16	static
+../Drivers/BSP/ST7735/lcd.c:348:16:lcd_gettick	8	static
+../Drivers/BSP/ST7735/lcd.c:353:16:lcd_writereg	32	static
+../Drivers/BSP/ST7735/lcd.c:367:16:lcd_readreg	24	static
+../Drivers/BSP/ST7735/lcd.c:381:16:lcd_senddata	24	static
+../Drivers/BSP/ST7735/lcd.c:392:16:lcd_recvdata	24	static

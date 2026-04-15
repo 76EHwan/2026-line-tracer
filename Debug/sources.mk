@@ -24,6 +24,7 @@ C_DEPS :=
 SUBDIRS := \
 Core/Src \
 Core/Startup \
+Drivers/BSP/SDcard \
 Drivers/BSP/ST7735 \
 Drivers/BSP/w25qxx \
 Drivers/STM32H7xx_HAL_Driver/Src \

@@ -85,7 +85,7 @@ void LCD_Test(void)
 		else if (get_tick() - tick <= 3000)
 		{
 			sprintf((char *)&text, "%03ld", (get_tick() - tick - 1000) / 10);
-			LCD_ShowString(ST7735Ctx.Width - 30, 1, ST7735Ctx.Width, 16, 16, text);
+			LCD_ShowString(ST7735Ctx.Width - 30, 1, ST7735Ctx.Width, 12, 12, text);
 			ST7735_LCD_Driver.FillRect(&st7735_pObj, 0, ST7735Ctx.Height - 3, (get_tick() - tick - 1000) * ST7735Ctx.Width / 2000, 3, 0xFFFF);
 		}
 		else if (get_tick() - tick > 3000)
@@ -99,12 +99,12 @@ void LCD_Test(void)
 
 	ST7735_LCD_Driver.FillRect(&st7735_pObj, 0, 0, ST7735Ctx.Width,ST7735Ctx.Height, BLACK);
 
-	sprintf((char *)&text, "WeAct Studio");
-	LCD_ShowString(4, 4, ST7735Ctx.Width, 16, 16, text);
-	sprintf((char *)&text, "STM32H7xx 0x%lX", HAL_GetDEVID());
-	LCD_ShowString(4, 22, ST7735Ctx.Width, 16, 16, text);
-	sprintf((char *)&text, "LCD ID:0x%lX", st7735_id);
-	LCD_ShowString(4, 40, ST7735Ctx.Width, 16, 16, text);
+//	sprintf((char *)&text, "WeAct Studio");
+//	LCD_ShowString(4, 4, ST7735Ctx.Width, 16, 16, text);
+//	sprintf((char *)&text, "STM32H7xx 0x%lX", HAL_GetDEVID());
+//	LCD_ShowString(4, 22, ST7735Ctx.Width, 16, 16, text);
+//	sprintf((char *)&text, "LCD ID:0x%lX", st7735_id);
+//	LCD_ShowString(4, 40, ST7735Ctx.Width, 16, 16, text);
 
 	LCD_Light(600, 300);
 }
@@ -321,17 +321,19 @@ void LCD_ShowChar(uint16_t x,uint16_t y,uint8_t num,uint8_t size,uint8_t mode)
 //width,height:�����С  
 //size:�����С
 //*p:�ַ�����ʼ��ַ
-void LCD_ShowString(uint16_t x,uint16_t y,uint16_t width,uint16_t height,uint8_t size,uint8_t *p)
+void LCD_ShowString(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint8_t size, uint8_t *p)
 {         
-	uint8_t x0=x;
-	width+=x;
-	height+=y;
-    while((*p<='~')&&(*p>=' '))//�ж��ǲ��ǷǷ��ַ�!
+    uint8_t x0 = x;
+    width += x;
+    height += y;
+    while((*p <= '~') && (*p >= ' '))
     {       
-        if(x>=width){x=x0;y+=size;}
-        if(y>=height)break;//�˳�
-        LCD_ShowChar(x,y,*p,size,0);
-        x+=size/2;
+        // ★ 수정: x >= width → x + size/2 > width
+        // 문자 폭(size/2)까지 포함해서 넘치면 미리 줄바꿈
+        if(x + size/2 > width){x = x0; y += size;}
+        if(y >= height) break;
+        LCD_ShowChar(x, y, *p, size, 0);
+        x += size/2;
         p++;
     }  
 }
