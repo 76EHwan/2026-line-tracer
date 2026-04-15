@@ -1,0 +1,7 @@
+../Core/Src/main.c:75:6:ExitRun0Mode	1
+../Core/Src/main.c:79:6:LED_Blink	1
+../Core/Src/main.c:92:5:main	1
+../Core/Src/main.c:161:6:SystemClock_Config	4
+../Core/Src/main.c:227:6:PeriphCommonClock_Config	2
+../Core/Src/main.c:255:13:CPU_CACHE_Disable	3
+../Core/Src/main.c:269:6:Error_Handler	1

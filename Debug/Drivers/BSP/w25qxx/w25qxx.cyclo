@@ -1,0 +1,10 @@
+../Drivers/BSP/w25qxx/w25qxx.c:11:9:W25Qx_Init	1
+../Drivers/BSP/w25qxx/w25qxx.c:26:13:W25Qx_Reset	1
+../Drivers/BSP/w25qxx/w25qxx.c:41:16:W25Qx_GetStatus	2
+../Drivers/BSP/w25qxx/w25qxx.c:69:9:W25Qx_WriteEnable	3
+../Drivers/BSP/w25qxx/w25qxx.c:105:6:W25Qx_Read_ID	1
+../Drivers/BSP/w25qxx/w25qxx.c:130:9:W25Qx_Get_Parameter	3
+../Drivers/BSP/w25qxx/w25qxx.c:160:9:W25Qx_Read	2
+../Drivers/BSP/w25qxx/w25qxx.c:189:9:W25Qx_Write	9
+../Drivers/BSP/w25qxx/w25qxx.c:265:9:W25Qx_Erase_Block	3
+../Drivers/BSP/w25qxx/w25qxx.c:301:9:W25Qx_Erase_Chip	3
