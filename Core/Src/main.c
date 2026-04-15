@@ -148,6 +148,12 @@ int main(void)
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
 	LCD_Test();
 	SDCard_Test();
+	HAL_Delay(1000);
+	LCD_Clear();
+	W25Qx_Init();
+	uint16_t id;
+	W25Qx_Read_ID(&id);
+	LCD_Printf(0, 0, "%X", id);
   /* USER CODE END 2 */
 
   /* Infinite loop */

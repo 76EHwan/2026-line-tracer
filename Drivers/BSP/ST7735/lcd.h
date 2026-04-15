@@ -16,18 +16,18 @@
 #define GREEN         	 0x07E0
 #define CYAN          	 0x7FFF
 #define YELLOW        	 0xFFE0
-#define BROWN 			 0XBC40 //×ØÉ«
-#define BRRED 			 0XFC07 //×ØºìÉ«
-#define GRAY  			 0X8430 //»ÒÉ«
-#define DARKBLUE      	 0X01CF	//ÉîÀ¶É«
-#define LIGHTBLUE      	 0X7D7C	//Ç³À¶É«  
-#define GRAYBLUE       	 0X5458 //»ÒÀ¶É«
+#define BROWN 			 0XBC40 //ï¿½ï¿½É«
+#define BRRED 			 0XFC07 //ï¿½Øºï¿½É«
+#define GRAY  			 0X8430 //ï¿½ï¿½É«
+#define DARKBLUE      	 0X01CF	//ï¿½ï¿½ï¿½ï¿½É«
+#define LIGHTBLUE      	 0X7D7C	//Ç³ï¿½ï¿½É«  
+#define GRAYBLUE       	 0X5458 //ï¿½ï¿½ï¿½ï¿½É«
 
 extern ST7735_Object_t st7735_pObj;
 extern uint32_t st7735_id;
 
-extern uint16_t POINT_COLOR;	//»­±ÊÑÕÉ«
-extern uint16_t BACK_COLOR;  //±³¾°É« 
+extern uint16_t POINT_COLOR;	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É«
+extern uint16_t BACK_COLOR;  //ï¿½ï¿½ï¿½ï¿½É« 
 
 void LCD_Test(void);
 void LCD_SetBrightness(uint32_t Brightness);
@@ -41,5 +41,6 @@ void LCD_Light(uint32_t Brightness_Dis,uint32_t time);
 void LCD_ShowChar(uint16_t x,uint16_t y,uint8_t num,uint8_t size,uint8_t mode);
 void LCD_ShowString(uint16_t x,uint16_t y,uint16_t width,uint16_t height,uint8_t size,uint8_t *p);
 extern ST7735_Ctx_t ST7735Ctx;
-
+void LCD_Printf(uint8_t x, uint8_t y, const char *text, ...);
+void LCD_Clear();
 #endif  
