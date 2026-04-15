@@ -67,7 +67,7 @@ typedef void (*pFunction)(void);
 void SystemClock_Config(void);
 void PeriphCommonClock_Config(void);
 /* USER CODE BEGIN PFP */
-static void CPU_CACHE_Disable(void);
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -95,6 +95,14 @@ int main(void)
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
+
+  /* Enable the CPU Cache */
+
+  /* Enable I-Cache---------------------------------------------------------*/
+  SCB_EnableICache();
+
+  /* Enable D-Cache---------------------------------------------------------*/
+  SCB_EnableDCache();
 
   /* MCU Configuration--------------------------------------------------------*/
 
@@ -138,6 +146,7 @@ int main(void)
   MX_TIM16_Init();
   MX_FATFS_Init();
   /* USER CODE BEGIN 2 */
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
 	LCD_Test();
 
   /* USER CODE END 2 */
@@ -149,7 +158,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-
+		LED_Blink(100);
 	}
   /* USER CODE END 3 */
 }
@@ -252,14 +261,6 @@ void PeriphCommonClock_Config(void)
  * @param  None
  * @retval None
  */
-static void CPU_CACHE_Disable(void) {
-	/* Disable I-Cache */
-	SCB_DisableICache();
-
-	/* Disable D-Cache */
-	SCB_DisableDCache();
-}
-
 /* USER CODE END 4 */
 
 /**

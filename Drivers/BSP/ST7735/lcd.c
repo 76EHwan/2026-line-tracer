@@ -49,7 +49,7 @@ void LCD_Test(void)
 	uint8_t text[20];
 	
 	#ifdef TFT96
-	ST7735Ctx.Orientation = ST7735_ORIENTATION_LANDSCAPE_ROT180;
+	ST7735Ctx.Orientation = ST7735_ORIENTATION_PORTRAIT;
 	ST7735Ctx.Panel = HannStar_Panel;
 	ST7735Ctx.Type = ST7735_0_9_inch_screen;
 	#elif TFT18

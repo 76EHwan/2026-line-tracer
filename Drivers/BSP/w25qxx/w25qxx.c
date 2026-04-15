@@ -23,7 +23,7 @@ uint8_t W25Qx_Init(void)
   * @brief  This function reset the W25Qx.
   * @retval None
   */
-static void	W25Qx_Reset(void)
+void W25Qx_Reset(void)
 {
 	uint8_t cmd[2] = {RESET_ENABLE_CMD,RESET_MEMORY_CMD};
 	
@@ -38,7 +38,7 @@ static void	W25Qx_Reset(void)
   * @brief  Reads current status of the W25QXXXX.
   * @retval W25QXXXX memory status
   */
-static uint8_t W25Qx_GetStatus(void)
+uint8_t W25Qx_GetStatus(void)
 {
 	uint8_t cmd[] = {READ_STATUS_REG1_CMD};
 	uint8_t status;
@@ -95,11 +95,11 @@ uint8_t W25Qx_WriteEnable(void)
 /**
   * @brief  Read Manufacture/Device ID.
 	* @param  return value address
-/   ·µ»ØÖµÈçÏÂ:        
-/   0XEF13,±íÊ¾Ð¾Æ¬ÐÍºÅÎªW25Q80   
-/   0XEF14,±íÊ¾Ð¾Æ¬ÐÍºÅÎªW25Q16     
-/   0XEF15,±íÊ¾Ð¾Æ¬ÐÍºÅÎªW25Q32   
-/   0XEF16,±íÊ¾Ð¾Æ¬ÐÍºÅÎªW25Q64  
+/   ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½:        
+/   0XEF13,ï¿½ï¿½Ê¾Ð¾Æ¬ï¿½Íºï¿½ÎªW25Q80   
+/   0XEF14,ï¿½ï¿½Ê¾Ð¾Æ¬ï¿½Íºï¿½ÎªW25Q16     
+/   0XEF15,ï¿½ï¿½Ê¾Ð¾Æ¬ï¿½Íºï¿½ÎªW25Q32   
+/   0XEF16,ï¿½ï¿½Ê¾Ð¾Æ¬ï¿½Íºï¿½ÎªW25Q64  
   * @retval None
   */
 void W25Qx_Read_ID(uint16_t *ID)
