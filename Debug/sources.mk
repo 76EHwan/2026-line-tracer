@@ -24,12 +24,17 @@ C_DEPS :=
 SUBDIRS := \
 Core/Src \
 Core/Startup \
+Drivers/BSP/DRV8316C \
+Drivers/BSP/LSM6DS3TR-C \
+Drivers/BSP/MCT8316Z \
+Drivers/BSP/MT6701 \
 Drivers/BSP/SDcard \
 Drivers/BSP/ST7735 \
 Drivers/BSP/w25qxx \
 Drivers/STM32H7xx_HAL_Driver/Src \
 FATFS/App \
 FATFS/Target \
+Main/Src \
 Middlewares/ST/STM32_USB_Device_Library/Class/CustomHID/Src \
 Middlewares/ST/STM32_USB_Device_Library/Core/Src \
 Middlewares/Third_Party/FatFs/src \

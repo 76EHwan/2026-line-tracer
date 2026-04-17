@@ -34,6 +34,8 @@ static int32_t lcd_readreg(uint8_t reg, uint8_t *pdata);
 static int32_t lcd_senddata(uint8_t *pdata, uint32_t length);
 static int32_t lcd_recvdata(uint8_t *pdata, uint32_t length);
 
+uint16_t BACK_BRIGHT = 600;
+
 ST7735_IO_t st7735_pIO = { lcd_init,
 NULL, 0, lcd_writereg, lcd_readreg, lcd_senddata, lcd_recvdata, lcd_gettick };
 
@@ -75,10 +77,10 @@ void LCD_Test(void) {
 		delay_ms(10);
 
 		if (get_tick() - tick <= 1000)
-			LCD_SetBrightness((get_tick() - tick) * 100 / 1000);
+			LCD_SetBrightness((get_tick() - tick) * BACK_BRIGHT / 1000);
 		else if (get_tick() - tick <= 3000) {
 			sprintf((char*) &text, "%03ld", (get_tick() - tick - 1000) / 10);
-			LCD_ShowString(ST7735Ctx.Width - 30, 1, ST7735Ctx.Width, 12, 12,
+			LCD_ShowString(ST7735Ctx.Width - 20, 1, ST7735Ctx.Width, 12, 12,
 					text);
 			ST7735_LCD_Driver.FillRect(&st7735_pObj, 0, ST7735Ctx.Height - 3,
 					(get_tick() - tick - 1000) * ST7735Ctx.Width / 2000, 3,
@@ -101,7 +103,7 @@ void LCD_Test(void) {
 //	sprintf((char *)&text, "LCD ID:0x%lX", st7735_id);
 //	LCD_ShowString(4, 40, ST7735Ctx.Width, 16, 16, text);
 
-	LCD_Light(600, 300);
+	LCD_Light(BACK_BRIGHT, 300);
 }
 
 static uint32_t LCD_LightSet;
@@ -282,7 +284,7 @@ void LCD_ShowChar(uint16_t x, uint16_t y, uint8_t num, uint8_t size,
 			if (size == 12)
 				temp = asc2_1206[num][t];  //����1206����
 			else
-				temp = asc2_1608[num][t];//����1608����
+				temp = asc2_1608[num][t];  //����1608����
 			for (t1 = 0; t1 < 8; t1++) {
 				if (temp & 0x80)
 					write[count][t / 2] = (POINT_COLOR & 0xFF) << 8
@@ -402,10 +404,21 @@ void LCD_Printf(uint8_t x, uint8_t y, const char *text, ...) {
 	vsprintf(txt, text, args);
 	va_end(args);
 
-	LCD_ShowString(6*x + 1, 14*y + 3, ST7735Ctx.Width, 12, 12, (uint8_t*) (txt));
+	uint16_t px = 6 * x + 1;
+	uint16_t py = 14 * y + 3;
+
+	// width: 시작 x부터 화면 끝까지 남은 폭
+	// height: 시작 y부터 화면 끝까지 남은 높이 (다중 줄 허용)
+	LCD_ShowString(px, py, ST7735Ctx.Width - px - 1, ST7735Ctx.Height - py - 1,
+			12, (uint8_t*) txt);
 }
 
-void LCD_Clear(){
+void LCD_Clear() {
+	LCD_Light(0, 250);
+
 	ST7735_LCD_Driver.FillRect(&st7735_pObj, 0, 0, ST7735Ctx.Width,
-				ST7735Ctx.Height, BLACK);
+			ST7735Ctx.Height, BLACK);
+
+	LCD_Light(900, 250);
+
 }

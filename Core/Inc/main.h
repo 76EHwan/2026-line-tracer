@@ -160,8 +160,8 @@ void Error_Handler(void);
 #define SWITCH_UP_GPIO_Port GPIOD
 #define SWITCH_DOWN_Pin GPIO_PIN_3
 #define SWITCH_DOWN_GPIO_Port GPIOD
-#define SD_EN_Pin GPIO_PIN_4
-#define SD_EN_GPIO_Port GPIOD
+#define SD_DETECT_Pin GPIO_PIN_4
+#define SD_DETECT_GPIO_Port GPIOD
 #define SWITCH_RIGHT_Pin GPIO_PIN_5
 #define SWITCH_RIGHT_GPIO_Port GPIOD
 #define F_CS_Pin GPIO_PIN_6

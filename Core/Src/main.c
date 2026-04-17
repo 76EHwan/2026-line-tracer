@@ -39,15 +39,12 @@
 #include "hid_bootloader.h"
 #include "usb_device.h"
 #include "SDcard.h"
+#include "user_init.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 
-#define W25Qxx_TEST              (0)
-#define APPLICATION_ADDRESS      QSPI_BASE
-#define ISP_ADDRESS              (0x1FF09800UL)
-typedef void (*pFunction)(void);
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -95,7 +92,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-
+	HAL_GPIO_WritePin(E3_GPIO_Port, E3_Pin, GPIO_PIN_SET);
   /* USER CODE END 1 */
 
   /* Enable the CPU Cache */
@@ -120,6 +117,7 @@ int main(void)
 
   /* USER CODE BEGIN SysInit */
 
+//  HAL_GPIO_WritePin(E3_GPIO_Port, E3_Pin, GPIO_PIN_SET);
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -150,10 +148,6 @@ int main(void)
 	SDCard_Test();
 	HAL_Delay(1000);
 	LCD_Clear();
-	W25Qx_Init();
-	uint16_t id;
-	W25Qx_Read_ID(&id);
-	LCD_Printf(0, 0, "%X", id);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -163,6 +157,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+		W25QXX_Test();
 		LED_Blink(100);
 	}
   /* USER CODE END 3 */
@@ -190,7 +185,7 @@ void SystemClock_Config(void)
   /** Configure LSE Drive Capability
   */
   HAL_PWR_EnableBkUpAccess();
-  __HAL_RCC_LSEDRIVE_CONFIG(RCC_LSEDRIVE_LOW);
+  __HAL_RCC_LSEDRIVE_CONFIG(RCC_LSEDRIVE_HIGH);
 
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
@@ -277,6 +272,10 @@ void Error_Handler(void)
   /* USER CODE BEGIN Error_Handler_Debug */
 	/* User can add his own implementation to report the HAL error return state */
 
+	while (1) {
+		HAL_GPIO_TogglePin(E3_GPIO_Port, E3_Pin);
+		HAL_Delay(50);
+	}
   /* USER CODE END Error_Handler_Debug */
 }
 #ifdef USE_FULL_ASSERT

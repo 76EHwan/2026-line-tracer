@@ -15,12 +15,17 @@ RM := rm -rf
 -include Middlewares/Third_Party/FatFs/src/subdir.mk
 -include Middlewares/ST/STM32_USB_Device_Library/Core/Src/subdir.mk
 -include Middlewares/ST/STM32_USB_Device_Library/Class/CustomHID/Src/subdir.mk
+-include Main/Src/subdir.mk
 -include FATFS/Target/subdir.mk
 -include FATFS/App/subdir.mk
 -include Drivers/STM32H7xx_HAL_Driver/Src/subdir.mk
 -include Drivers/BSP/w25qxx/subdir.mk
 -include Drivers/BSP/ST7735/subdir.mk
 -include Drivers/BSP/SDcard/subdir.mk
+-include Drivers/BSP/MT6701/subdir.mk
+-include Drivers/BSP/MCT8316Z/subdir.mk
+-include Drivers/BSP/LSM6DS3TR-C/subdir.mk
+-include Drivers/BSP/DRV8316C/subdir.mk
 -include Core/Startup/subdir.mk
 -include Core/Src/subdir.mk
 -include objects.mk

@@ -4,20 +4,21 @@
 
 #ifdef __cplusplus
  extern "C" {
-#endif 
+#endif
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "spi.h"
-	 
+#include "string.h"
+
 /** @addtogroup BSP
   * @{
-  */ 
+  */
 
 /** @addtogroup Components
   * @{
-  */ 
-  
+  */
+
 /** @addtogroup W25QXXXX
   * @{
   */
@@ -25,19 +26,19 @@
 /** @defgroup W25QXXXX_Exported_Types
   * @{
   */
-   
+
 /**
   * @}
-  */ 
+  */
 
 /** @defgroup W25QXXXX_Exported_Constants
   * @{
   */
-   
-/** 
-  * @brief  W25QXX Configuration  
-  */  
-	
+
+/**
+  * @brief  W25QXX Configuration
+  */
+
 /* W25Q32 */
 #define W25QXXXX_FLASH_SIZE                  0x0400000 /* 32 MBits => 4MBytes */
 #define W25QXXXX_SECTOR_COUNT                0x40      /* 64 sectors of 64KBytes */
@@ -60,9 +61,9 @@
 #define W25QXXXX_SUBSECTOR_ERASE_MAX_TIME    800
 #define W25QXXXX_TIMEOUT_VALUE 1000
 
-/** 
-  * @brief  W25QXX Commands  
-  */  
+/**
+  * @brief  W25QXX Commands
+  */
 /* Reset Operations */
 #define RESET_ENABLE_CMD                     0x66
 #define RESET_MEMORY_CMD                     0x99
@@ -151,26 +152,26 @@ uint8_t W25Qx_Get_Parameter(W25Qx_Parameter *Para);
 /**
   * @}
   */
-  
+
 /** @defgroup W25QXXXX_Exported_Functions
   * @{
-  */ 
+  */
 /**
   * @}
-  */ 
-      
-/**
-  * @}
-  */ 
-
-/**
-  * @}
-  */ 
+  */
 
 /**
   * @}
   */
-  
+
+/**
+  * @}
+  */
+
+/**
+  * @}
+  */
+
 #ifdef __cplusplus
 }
 #endif
