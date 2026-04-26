@@ -148,7 +148,11 @@ int main(void)
 	SDCard_Test();
 	HAL_Delay(1000);
 	LCD_Clear();
-  /* USER CODE END 2 */
+	W25QXX_Test();
+	HAL_Delay(1000);
+	LCD_Clear();
+	Display_Random_BMP_From_SD();
+	/* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
@@ -157,7 +161,6 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-		W25QXX_Test();
 		LED_Blink(100);
 	}
   /* USER CODE END 3 */
