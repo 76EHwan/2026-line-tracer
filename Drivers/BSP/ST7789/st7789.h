@@ -2,35 +2,22 @@
 #define __ST7789_H
 
 #include "main.h"
+#include "spi.h"
 #include "fonts.h"
 
-/* 1. SPI 포트 설정 (SPI4) */
+#define ST7789_WIDTH   135
+#define ST7789_HEIGHT  240
+#define ST7789_ROTATION 0  // 0, 1, 2, 3 중 선택
+
 #define ST7789_SPI_PORT hspi4
-extern SPI_HandleTypeDef ST7789_SPI_PORT;
-
-/* * 2. DMA 사용 여부
- * (우선 화면이 정상적으로 나오는지 확인하기 위해 주석 처리하여 안전하게 동작시킵니다.
- * 화면이 나오면 나중에 주석을 풀고 사용하세요.)
- */
-// #define USE_DMA
-
-/* 3. 해상도 설정 (1.14인치 135x240) */
-#define USING_135X240
-
-/* * 4. 핀 매핑 (매우 중요: 질문자님의 회로 핀 이름으로 교체됨)
- */
-#define ST7789_DC_PORT LCD_WR_RS_GPIO_Port
-#define ST7789_DC_PIN  LCD_WR_RS_Pin
-
-#define ST7789_CS_PORT LCD_CS_GPIO_Port
-#define ST7789_CS_PIN  LCD_CS_Pin
+#define ST7789_DC_PORT  LCD_WR_RS_GPIO_Port
+#define ST7789_DC_PIN   LCD_WR_RS_Pin
+#define ST7789_CS_PORT  LCD_CS_GPIO_Port
+#define ST7789_CS_PIN   LCD_CS_Pin
 
 /* 하드웨어 RST 핀이 없으므로 주석 처리합니다. */
 // #define ST7789_RST_PORT LCD_RST_GPIO_Port
 // #define ST7789_RST_PIN  LCD_RST_Pin
-
-/* 5. 화면 방향 (0, 1, 2, 3 중 선택) */
-#define ST7789_ROTATION 2
 
 /* 색상 정의 */
 #define WHITE       0xFFFF

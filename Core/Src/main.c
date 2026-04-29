@@ -146,14 +146,18 @@ int main(void) {
 	MX_FATFS_Init();
 	/* USER CODE BEGIN 2 */
 //	HAL_GPIO_WritePin(E3_GPIO_Port, E3_Pin, GPIO_PIN_RESET);
-
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
-	LCD7789_Test();
-	SDCard_Test();
-	HAL_Delay(1000);
-	W25QXX_Test();
-	HAL_Delay(1000);
-	/* USER CODE END 2 */
+	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 900); // Duty 100% (밝기 최대)
+	ST7789_Init();
+	LCD7789_Printf(0, 0, "Hello World");
+
+	while(1);
+
+//	SDCard_Test();
+//	HAL_Delay(1000);
+//	W25QXX_Test();
+//	HAL_Delay(1000);
+//	/* USER CODE END 2 */
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */

@@ -34,7 +34,7 @@ void LCD7789_Test(void) {
 
 	/* 백라이트 PWM 활성화 (여기서 먼저 시작해야 루프에 막히지 않고 화면이 나옵니다) */
 	HAL_TIM_PWM_Start(LCD_Brightness_timer, LCD_Brightness_channel);
-	LCD7789_SetBrightness(0);
+	LCD7789_SetBrightness(600);
 
 	uint32_t tick = get_tick();
 	while (HAL_GPIO_ReadPin(KEY_GPIO_Port, KEY_Pin) != GPIO_PIN_SET) {
