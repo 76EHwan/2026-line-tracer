@@ -50,6 +50,13 @@ Drivers/BSP/ST7735/lcd.o: ../Drivers/BSP/ST7735/lcd.c \
  ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_ll_usb.h \
  ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_pcd_ex.h \
  ../Drivers/BSP/ST7735/st7735.h ../Drivers/BSP/ST7735/st7735_reg.h \
+ ../Drivers/BSP/SDcard/SDcard.h ../FATFS/App/fatfs.h \
+ ../Middlewares/Third_Party/FatFs/src/ff.h \
+ ../Middlewares/Third_Party/FatFs/src/integer.h ../FATFS/Target/ffconf.h \
+ ../FATFS/Target/bsp_driver_sd.h ../FATFS/Target/fatfs_platform.h \
+ ../Middlewares/Third_Party/FatFs/src/ff_gen_drv.h \
+ ../Middlewares/Third_Party/FatFs/src/diskio.h \
+ ../Middlewares/Third_Party/FatFs/src/ff.h ../FATFS/Target/sd_diskio.h \
  ../Drivers/BSP/ST7735/font.h ../Core/Inc/spi.h ../Core/Inc/main.h \
  ../Core/Inc/tim.h
 ../Drivers/BSP/ST7735/lcd.h:
@@ -105,6 +112,17 @@ Drivers/BSP/ST7735/lcd.o: ../Drivers/BSP/ST7735/lcd.c \
 ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_pcd_ex.h:
 ../Drivers/BSP/ST7735/st7735.h:
 ../Drivers/BSP/ST7735/st7735_reg.h:
+../Drivers/BSP/SDcard/SDcard.h:
+../FATFS/App/fatfs.h:
+../Middlewares/Third_Party/FatFs/src/ff.h:
+../Middlewares/Third_Party/FatFs/src/integer.h:
+../FATFS/Target/ffconf.h:
+../FATFS/Target/bsp_driver_sd.h:
+../FATFS/Target/fatfs_platform.h:
+../Middlewares/Third_Party/FatFs/src/ff_gen_drv.h:
+../Middlewares/Third_Party/FatFs/src/diskio.h:
+../Middlewares/Third_Party/FatFs/src/ff.h:
+../FATFS/Target/sd_diskio.h:
 ../Drivers/BSP/ST7735/font.h:
 ../Core/Inc/spi.h:
 ../Core/Inc/main.h:

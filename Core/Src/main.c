@@ -21,6 +21,7 @@
 #include "main.h"
 #include "adc.h"
 #include "dac.h"
+#include "dma.h"
 #include "fatfs.h"
 #include "i2c.h"
 #include "lptim.h"
@@ -33,8 +34,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "st7789_lcd.h"
 #include <string.h>
-#include "lcd.h"
 #include "w25qxx.h"
 #include "hid_bootloader.h"
 #include "usb_device.h"
@@ -44,6 +45,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
+#define TEST_DISPLAY "/display"
 
 /* USER CODE END PTD */
 
@@ -122,6 +124,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_RTC_Init();
   MX_ADC1_Init();
   MX_ADC2_Init();
@@ -143,16 +146,13 @@ int main(void)
   MX_TIM16_Init();
   MX_FATFS_Init();
   /* USER CODE BEGIN 2 */
+  LCD7789_Test();
 	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
-	LCD_Test();
 	SDCard_Test();
 	HAL_Delay(1000);
-	LCD_Clear();
 	W25QXX_Test();
 	HAL_Delay(1000);
-	LCD_Clear();
-	Display_Random_BMP_From_SD();
-	/* USER CODE END 2 */
+  /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */

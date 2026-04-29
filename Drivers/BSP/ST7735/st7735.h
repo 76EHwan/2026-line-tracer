@@ -91,6 +91,9 @@ typedef struct
 	uint8_t					Type;
 } ST7735_Ctx_t;
 
+extern ST7735_Ctx_t ST7735Ctx;
+
+
 typedef struct
 {
   /* Control functions */

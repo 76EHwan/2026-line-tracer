@@ -9,6 +9,7 @@
 #define USER_INIT_H_
 
 #include "main.h"
+#define LCD_ST7789
 
 void SDCard_Test(void);
 void W25QXX_Test(void);
@@ -16,7 +17,5 @@ void W25QXX_Test(void);
 #ifdef FOC_CONTROL
 void Test_DRV8316C_Read_Status(DRV8316C_Handle_t *hdrv);
 #endif
-void Display_Random_BMP_From_SD(void);
-
 
 #endif /* USER_INIT_H_ */

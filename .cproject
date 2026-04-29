@@ -60,6 +60,7 @@
 									<listOptionValue builtIn="false" value="../Drivers/BSP/SDcard"/>
 									<listOptionValue builtIn="false" value="../Drivers/BSP/w25qxx"/>
 									<listOptionValue builtIn="false" value="../Main/Inc"/>
+									<listOptionValue builtIn="false" value="../Drivers/BSP/ST7789"/>
 								</option>
 								<inputType id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c.1827217048" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c"/>
 							</tool>
