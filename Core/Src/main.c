@@ -146,7 +146,7 @@ int main(void) {
 	MX_FATFS_Init();
 	/* USER CODE BEGIN 2 */
 //	HAL_GPIO_WritePin(E3_GPIO_Port, E3_Pin, GPIO_PIN_RESET);
-	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
+	HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_2);
 	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 900); // Duty 100% (밝기 최대)
 	ST7789_Init();
 	LCD7789_Printf(0, 0, "Hello World");
