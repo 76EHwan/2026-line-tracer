@@ -1,6 +1,13 @@
+/*
+ * st7789_lcd.c
+ *
+ * Created on: 2026. 4. 29.
+ * Author: kth59
+ */
 #include "st7789_lcd.h"
 #include "spi.h"
 #include "tim.h"
+
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -21,7 +28,12 @@ static uint8_t IsLCD7789_SoftPWM = 0;
 
 void LCD7789_Test(void) {
 	uint8_t text[20];
+
+	/* ST7789 초기화 */
 	ST7789_Init();
+
+	/* 백라이트 PWM 활성화 (여기서 먼저 시작해야 루프에 막히지 않고 화면이 나옵니다) */
+	HAL_TIM_PWM_Start(LCD_Brightness_timer, LCD_Brightness_channel);
 	LCD7789_SetBrightness(0);
 
 	uint32_t tick = get_tick();
@@ -127,7 +139,124 @@ void LCD7789_Printf(uint16_t x, uint16_t y, const char *text, ...) {
 	ST7789_WriteString(x, y, txt, Font_11x18, LCD7789_POINT_COLOR, LCD7789_BACK_COLOR);
 }
 
-/* BMP 함수 내부에서 호출되는 LCD_Printf와 BACK_COLOR 등도 모두 LCD7789_ 접두사로 통일합니다. */
 void LCD7789_Display_Random_BMP_From_SD(const TCHAR *address) {
-    // 내부 로직은 이전과 동일하며 LCD_Clear -> LCD7789_Clear 등으로만 수정
+	FRESULT res;
+	DIR dir;
+	FILINFO fno;
+	int bmp_count = 0;
+
+	LCD7789_Clear();
+	LCD7789_Printf(5, 5, "[BMP Load Test]");
+
+	if (SDCard_Mount() != FR_OK) {
+		LCD7789_Printf(5, 25, "ERR: SD Mount");
+		return;
+	}
+
+	res = f_opendir(&dir, address);
+	if (res != FR_OK) {
+		LCD7789_Printf(5, 25, "ERR: Open Dir %d", res);
+		SDCard_Unmount();
+		return;
+	}
+
+	while (1) {
+		res = f_readdir(&dir, &fno);
+		if (res != FR_OK || fno.fname[0] == 0) break;
+		if (strstr(fno.fname, ".bmp") || strstr(fno.fname, ".BMP")) {
+			bmp_count++;
+		}
+	}
+	f_closedir(&dir);
+
+	LCD7789_Printf(5, 25, "BMP Count: %d", bmp_count);
+	if (bmp_count == 0) {
+		LCD7789_Printf(5, 45, "ERR: No BMPs");
+		SDCard_Unmount();
+		return;
+	}
+
+	srand(HAL_GetTick());
+	int target_idx = rand() % bmp_count;
+	char target_filename[30] = "";
+
+	res = f_opendir(&dir, address);
+	if (res == FR_OK) {
+		int current_idx = 0;
+		while (1) {
+			res = f_readdir(&dir, &fno);
+			if (res != FR_OK || fno.fname[0] == 0) break;
+
+			if (strstr(fno.fname, ".bmp") || strstr(fno.fname, ".BMP")) {
+				if (current_idx == target_idx) {
+					strcpy(target_filename, fno.fname);
+					break;
+				}
+				current_idx++;
+			}
+		}
+		f_closedir(&dir);
+	}
+
+	char full_path[64];
+	sprintf(full_path, "%s/%s", address, target_filename);
+
+	char short_name[15] = { 0 };
+	strncpy(short_name, target_filename, 14);
+	LCD7789_Printf(5, 45, "File: %s", short_name);
+
+	FIL file;
+	UINT bytesRead;
+	uint8_t header[54];
+
+	res = f_open(&file, full_path, FA_READ);
+	if (res != FR_OK) {
+		LCD7789_Printf(5, 65, "ERR: Open %d", res);
+		SDCard_Unmount();
+		return;
+	}
+
+	f_read(&file, header, 54, &bytesRead);
+
+	uint32_t dataOffset = header[10] | (header[11] << 8) | (header[12] << 16) | (header[13] << 24);
+	int32_t width = header[18] | (header[19] << 8) | (header[20] << 16) | (header[21] << 24);
+	int32_t height = header[22] | (header[23] << 8) | (header[24] << 16) | (header[25] << 24);
+	uint16_t bitDepth = header[28] | (header[29] << 8);
+
+	LCD7789_Printf(5, 65, "W:%d H:%d B:%d", (int) width, (int) height, (int) bitDepth);
+
+	if (bitDepth != 24) {
+		LCD7789_Printf(5, 85, "ERR: Not 24bit!");
+		f_close(&file);
+		SDCard_Unmount();
+		return;
+	}
+
+	LCD7789_Printf(5, 85, "Drawing...");
+	HAL_Delay(1000);
+	ST7789_Fill_Color(LCD7789_BACK_COLOR);
+
+	f_lseek(&file, dataOffset);
+	uint8_t rowBuffer[ST7789_WIDTH * 3];
+	uint16_t lcdBuffer[ST7789_WIDTH];
+	int padding = (4 - ((width * 3) % 4)) % 4;
+
+	for (int y = height - 1; y >= 0; y--) {
+		f_read(&file, rowBuffer, (width * 3) + padding, &bytesRead);
+		for (int x = 0; x < width; x++) {
+			uint8_t b = rowBuffer[x * 3];
+			uint8_t g = rowBuffer[x * 3 + 1];
+			uint8_t r = rowBuffer[x * 3 + 2];
+
+			uint16_t color = ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3);
+			lcdBuffer[x] = (color >> 8) | (color << 8);
+		}
+
+		if (y < ST7789_HEIGHT && width <= ST7789_WIDTH) {
+			ST7789_DrawImage(0, y, width, 1, lcdBuffer);
+		}
+	}
+
+	f_close(&file);
+	SDCard_Unmount();
 }
