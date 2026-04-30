@@ -192,13 +192,16 @@ void LCD7789_ShowChar(uint16_t x, uint16_t y, uint8_t num, uint8_t size,
 	uint16_t bgcolor = LCD7789_BACK_COLOR;
 
 	FontDef *font;
-	// size 파라미터에 따라 폰트 구조체를 내부에서 자동 매핑
-	if (size == 18)
+	if (size == 12)
+		font = (FontDef*) &Font_6x12;
+	else if (size == 16)
+		font = (FontDef*) &Font_8x16;
+	else if (size == 18)
 		font = (FontDef*) &Font_11x18;
 	else if (size == 26)
 		font = (FontDef*) &Font_16x26;
 	else
-		font = (FontDef*) &Font_7x10; // 기본 크기(10)
+		font = (FontDef*) &Font_7x10;
 
 	uint8_t f_width = font->width;
 	uint8_t f_height = font->height;
@@ -242,12 +245,16 @@ void LCD7789_ShowString(uint16_t x, uint16_t y, uint16_t width, uint16_t height,
 	height += y;
 
 	FontDef *font;
-	if (size == 18)
-		font = (FontDef*) &Font_11x18;
-	else if (size == 26)
-		font = (FontDef*) &Font_16x26;
-	else
-		font = (FontDef*) &Font_7x10;
+	if (size == 12)
+			font = (FontDef*) &Font_6x12;
+		else if (size == 16)
+			font = (FontDef*) &Font_8x16;
+		else if (size == 18)
+			font = (FontDef*) &Font_11x18;
+		else if (size == 26)
+			font = (FontDef*) &Font_16x26;
+		else
+			font = (FontDef*) &Font_7x10;
 
 	while ((*p <= '~') && (*p >= ' ')) {
 		if (x + font->width > width) {
@@ -271,7 +278,7 @@ void LCD7789_Printf(uint16_t x, uint16_t y, const char *text, ...) {
 	va_end(args);
 
 	// 고정 크기 지정 (ST7735 시절의 고정 렌더링 스타일. 필요시 18이나 26으로 변경 가능)
-	uint8_t fixed_size = 18;
+	uint8_t fixed_size = 16;
 
 	LCD7789_ShowString(x, y, ST7789Ctx.Width - x, ST7789Ctx.Height - y,
 			fixed_size, (uint8_t*) txt);

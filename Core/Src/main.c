@@ -48,6 +48,7 @@
 /* USER CODE BEGIN PTD */
 #define TEST_DISPLAY "/display"
 #define LCD_Printf LCD7789_Printf
+#define LCD_Clear LCD7789_Clear
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -152,14 +153,11 @@ int main(void)
 	LCD_Printf(0, 0, "Hello World");
 	HAL_GPIO_TogglePin(E3_GPIO_Port, E3_Pin);
 
-
-	while (1)
-		;
-
-//	SDCard_Test();
-//	HAL_Delay(1000);
-//	W25QXX_Test();
-//	HAL_Delay(1000);
+	SDCard_Test();
+	HAL_Delay(5000);
+	LCD_Clear();
+	W25QXX_Test();
+	HAL_Delay(5000);
   /* USER CODE END 2 */
 
   /* Infinite loop */
