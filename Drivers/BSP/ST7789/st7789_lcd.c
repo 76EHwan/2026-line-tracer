@@ -26,6 +26,8 @@
 #define LCD_Brightness_timer &htim1
 #define LCD_Brightness_channel TIM_CHANNEL_2
 
+extern RNG_HandleTypeDef hrng;
+
 static int32_t lcd7789_init(void);
 static int32_t lcd7789_gettick(void);
 static int32_t lcd7789_writereg(uint8_t reg, uint8_t *pdata, uint32_t length);
@@ -40,7 +42,6 @@ ST7789_IO_t st7789_pIO = { lcd7789_init, 0, 0, lcd7789_writereg,
 
 ST7789_Object_t st7789_pObj;
 void LCD7789_Test(void) {
-	uint8_t text[20];
 
 #if defined(TFT135x240)
 	ST7789Ctx.Orientation = ST7789_ORIENTATION_PORTRAIT;
@@ -62,7 +63,6 @@ void LCD7789_Test(void) {
 
 	LCD7789_Display_Random_BMP_From_SD("/display");
 
-
 	uint32_t tick = get_tick();
 	while (HAL_GPIO_ReadPin(KEY_GPIO_Port, KEY_Pin) != GPIO_PIN_SET) {
 		delay_ms(10);
@@ -73,12 +73,8 @@ void LCD7789_Test(void) {
 			LCD7789_SetBrightness(elapsed * LCD7789_BACK_BRIGHT / 1000);
 		} else if (elapsed <= 3000) {
 			LCD7789_SetBrightness(LCD7789_BACK_BRIGHT);
-
-			sprintf((char*) &text, "%03ld", (elapsed - 1000) / 10);
-			LCD7789_ShowString(ST7789Ctx.Width - 40, 5, ST7789Ctx.Width, 18, 18,
-					text);
-			ST7789_LCD_Driver.FillRect(&st7789_pObj, 0, ST7789Ctx.Height - 3,
-					(elapsed - 1000) * ST7789Ctx.Width / 2000, 3, 0xFFFF);
+			ST7789_LCD_Driver.FillRect(&st7789_pObj, 0, ST7789Ctx.Height - 5,
+					(elapsed - 1000) * ST7789Ctx.Width / 2000, 5, 0xFFFF);
 		} else if (elapsed > 3000) {
 			break;
 		}
@@ -291,81 +287,85 @@ static int32_t lcd7789_gettick(void) {
 }
 
 static int32_t lcd7789_writereg(uint8_t reg, uint8_t *pdata, uint32_t length) {
-    int32_t result;
-    LCD_CS_RESET;
-    LCD_RS_RESET;
-    // 레지스터 주소(1바이트)는 폴링으로 전송하는 것이 효율적입니다.
-    result = HAL_SPI_Transmit(SPI_Drv, &reg, 1, 100);
-    LCD_RS_SET;
+	int32_t result;
+	LCD_CS_RESET;
+	LCD_RS_RESET;
+	// 레지스터 주소(1바이트)는 폴링으로 전송하는 것이 효율적입니다.
+	result = HAL_SPI_Transmit(SPI_Drv, &reg, 1, 100);
+	LCD_RS_SET;
 
-    if (length > 0) {
-        uint32_t remaining = length;
-        uint8_t *ptr = pdata;
+	if (length > 0) {
+		uint32_t remaining = length;
+		uint8_t *ptr = pdata;
 
-        while (remaining > 0) {
-            uint16_t chunk = (remaining > 65535) ? 65535 : (uint16_t)remaining;
-            HAL_SPI_Transmit_DMA(SPI_Drv, ptr, chunk);
+		while (remaining > 0) {
+			uint16_t chunk = (remaining > 65535) ? 65535 : (uint16_t) remaining;
+			HAL_SPI_Transmit_DMA(SPI_Drv, ptr, chunk);
 
-            // DMA 전송 완료 대기
-            while (HAL_SPI_GetState(SPI_Drv) != HAL_SPI_STATE_READY) {}
+			// DMA 전송 완료 대기
+			while (HAL_SPI_GetState(SPI_Drv) != HAL_SPI_STATE_READY) {
+			}
 
-            ptr += chunk;
-            remaining -= chunk;
-        }
-    }
-    LCD_CS_SET;
-    return result > 0 ? -1 : 0;
+			ptr += chunk;
+			remaining -= chunk;
+		}
+	}
+	LCD_CS_SET;
+	return result > 0 ? -1 : 0;
 }
 
 static int32_t lcd7789_readreg(uint8_t reg, uint8_t *pdata) {
-    int32_t result;
-    LCD_CS_RESET;
-    LCD_RS_RESET;
-    result = HAL_SPI_Transmit(SPI_Drv, &reg, 1, 100);
-    LCD_RS_SET;
+	int32_t result;
+	LCD_CS_RESET;
+	LCD_RS_RESET;
+	result = HAL_SPI_Transmit(SPI_Drv, &reg, 1, 100);
+	LCD_RS_SET;
 
-    // 읽기는 보통 1바이트이므로 폴링 유지 또는 DMA 적용 가능
-    result += HAL_SPI_Receive_DMA(SPI_Drv, pdata, 1);
-    while (HAL_SPI_GetState(SPI_Drv) != HAL_SPI_STATE_READY) {}
+	// 읽기는 보통 1바이트이므로 폴링 유지 또는 DMA 적용 가능
+	result += HAL_SPI_Receive_DMA(SPI_Drv, pdata, 1);
+	while (HAL_SPI_GetState(SPI_Drv) != HAL_SPI_STATE_READY) {
+	}
 
-    LCD_CS_SET;
-    return result > 0 ? -1 : 0;
+	LCD_CS_SET;
+	return result > 0 ? -1 : 0;
 }
 
 static int32_t lcd7789_senddata(uint8_t *pdata, uint32_t length) {
-    LCD_CS_RESET;
-    uint32_t remaining = length;
-    uint8_t *ptr = pdata;
+	LCD_CS_RESET;
+	uint32_t remaining = length;
+	uint8_t *ptr = pdata;
 
-    while (remaining > 0) {
-        uint16_t chunk = (remaining > 65535) ? 65535 : (uint16_t)remaining;
-        HAL_SPI_Transmit_DMA(SPI_Drv, ptr, chunk);
+	while (remaining > 0) {
+		uint16_t chunk = (remaining > 65535) ? 65535 : (uint16_t) remaining;
+		HAL_SPI_Transmit_DMA(SPI_Drv, ptr, chunk);
 
-        while (HAL_SPI_GetState(SPI_Drv) != HAL_SPI_STATE_READY) {}
+		while (HAL_SPI_GetState(SPI_Drv) != HAL_SPI_STATE_READY) {
+		}
 
-        ptr += chunk;
-        remaining -= chunk;
-    }
-    LCD_CS_SET;
-    return 0;
+		ptr += chunk;
+		remaining -= chunk;
+	}
+	LCD_CS_SET;
+	return 0;
 }
 
 static int32_t lcd7789_recvdata(uint8_t *pdata, uint32_t length) {
-    LCD_CS_RESET;
-    uint32_t remaining = length;
-    uint8_t *ptr = pdata;
+	LCD_CS_RESET;
+	uint32_t remaining = length;
+	uint8_t *ptr = pdata;
 
-    while (remaining > 0) {
-        uint16_t chunk = (remaining > 65535) ? 65535 : (uint16_t)remaining;
-        HAL_SPI_Receive_DMA(SPI_Drv, ptr, chunk);
+	while (remaining > 0) {
+		uint16_t chunk = (remaining > 65535) ? 65535 : (uint16_t) remaining;
+		HAL_SPI_Receive_DMA(SPI_Drv, ptr, chunk);
 
-        while (HAL_SPI_GetState(SPI_Drv) != HAL_SPI_STATE_READY) {}
+		while (HAL_SPI_GetState(SPI_Drv) != HAL_SPI_STATE_READY) {
+		}
 
-        ptr += chunk;
-        remaining -= chunk;
-    }
-    LCD_CS_SET;
-    return 0;
+		ptr += chunk;
+		remaining -= chunk;
+	}
+	LCD_CS_SET;
+	return 0;
 }
 
 void LCD7789_Clear() {
@@ -419,8 +419,13 @@ void LCD7789_Display_Random_BMP_From_SD(const TCHAR *address) {
 		return;
 	}
 
-	srand(HAL_GetTick());
-	int target_idx = rand() % bmp_count;
+	uint32_t random_val = 0;
+	if (HAL_RNG_GenerateRandomNumber(&hrng, &random_val) != HAL_OK) {
+		random_val = HAL_GetTick();
+	}
+
+	int target_idx = random_val % bmp_count;
+
 	char target_filename[30] = "";
 
 	res = f_opendir(&dir, address);

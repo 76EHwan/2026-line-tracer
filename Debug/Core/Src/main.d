@@ -33,6 +33,7 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_lptim.h \
  ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_pwr.h \
  ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_pwr_ex.h \
+ ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_rng.h \
  ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_rtc.h \
  ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_rtc_ex.h \
  ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_sd.h \
@@ -55,9 +56,9 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Middlewares/Third_Party/FatFs/src/ff_gen_drv.h \
  ../Middlewares/Third_Party/FatFs/src/diskio.h \
  ../Middlewares/Third_Party/FatFs/src/ff.h ../FATFS/Target/sd_diskio.h \
- ../Core/Inc/i2c.h ../Core/Inc/lptim.h ../Core/Inc/rtc.h \
- ../Core/Inc/sdmmc.h ../Core/Inc/spi.h ../Core/Inc/tim.h \
- ../Core/Inc/usart.h ../Core/Inc/gpio.h \
+ ../Core/Inc/i2c.h ../Core/Inc/lptim.h ../Core/Inc/rng.h \
+ ../Core/Inc/rtc.h ../Core/Inc/sdmmc.h ../Core/Inc/spi.h \
+ ../Core/Inc/tim.h ../Core/Inc/usart.h ../Core/Inc/gpio.h \
  ../Drivers/BSP/ST7789/st7789_lcd.h ../Drivers/BSP/ST7789/fonts.h \
  ../Drivers/BSP/ST7789/st7789.h ../Drivers/BSP/SDcard/SDcard.h \
  ../Drivers/BSP/w25qxx/w25qxx.h ../Core/Inc/hid_bootloader.h \
@@ -105,6 +106,7 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_lptim.h:
 ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_pwr.h:
 ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_pwr_ex.h:
+../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_rng.h:
 ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_rtc.h:
 ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_rtc_ex.h:
 ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_sd.h:
@@ -136,6 +138,7 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../FATFS/Target/sd_diskio.h:
 ../Core/Inc/i2c.h:
 ../Core/Inc/lptim.h:
+../Core/Inc/rng.h:
 ../Core/Inc/rtc.h:
 ../Core/Inc/sdmmc.h:
 ../Core/Inc/spi.h:

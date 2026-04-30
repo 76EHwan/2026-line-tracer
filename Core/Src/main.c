@@ -25,6 +25,7 @@
 #include "fatfs.h"
 #include "i2c.h"
 #include "lptim.h"
+#include "rng.h"
 #include "rtc.h"
 #include "sdmmc.h"
 #include "spi.h"
@@ -145,6 +146,7 @@ int main(void)
   MX_USART2_UART_Init();
   MX_TIM16_Init();
   MX_FATFS_Init();
+  MX_RNG_Init();
   /* USER CODE BEGIN 2 */
 	LCD7789_Test();
 	LCD_Printf(0, 0, "Hello World");
