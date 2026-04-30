@@ -4,7 +4,7 @@
  *  Created on: 2026. 4. 16.
  *      Author: kth59
  */
-#include <st7789_lcd.h>
+#include "st7789_lcd.h"
 #include "user_init.h"
 #include "main.h"
 #include "w25qxx.h"

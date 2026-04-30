@@ -1,188 +1,277 @@
 #include "st7789.h"
 
-extern uint16_t ST7789_WIDTH_R;
-extern uint16_t ST7789_HEIGHT_R;
+#define ST7789_CASET   0x2A
+#define ST7789_RASET   0x2B
+#define ST7789_RAMWR   0x2C
+#define ST7789_MADCTL  0x36
 
-#if ST7789_ROTATION == 0 || ST7789_ROTATION == 2
-uint16_t ST7789_WIDTH_R = ST7789_WIDTH;
-uint16_t ST7789_HEIGHT_R = ST7789_HEIGHT;
-#else
-uint16_t ST7789_WIDTH_R = ST7789_HEIGHT;
-uint16_t ST7789_HEIGHT_R = ST7789_WIDTH;
-#endif
+ST7789_Ctx_t ST7789Ctx;
 
-#define ST7789_Select()    HAL_GPIO_WritePin(ST7789_CS_PORT, ST7789_CS_PIN, GPIO_PIN_RESET)
-#define ST7789_UnSelect()  HAL_GPIO_WritePin(ST7789_CS_PORT, ST7789_CS_PIN, GPIO_PIN_SET)
+// Helper Macros
+#define st7789_write_reg(ctx, reg, pdata, len) (ctx)->WriteReg((ctx)->handle, (reg), (pdata), (len))
+#define st7789_read_reg(ctx, reg, pdata) (ctx)->ReadReg((ctx)->handle, (reg), (pdata))
+#define st7789_send_data(ctx, pdata, len) (ctx)->SendData((ctx)->handle, (pdata), (len))
+#define st7789_recv_data(ctx, pdata, len) (ctx)->RecvData((ctx)->handle, (pdata), (len))
 
-/* 내부 전송 함수: CS 핀 토글링을 제거하고 순수 데이터만 전송하도록 변경 */
-static void ST7789_SendCmd(uint8_t cmd) {
-	HAL_GPIO_WritePin(ST7789_DC_PORT, ST7789_DC_PIN, GPIO_PIN_RESET);
-	HAL_SPI_Transmit(&ST7789_SPI_PORT, &cmd, 1, HAL_MAX_DELAY);
+static int32_t ST7789_SetDisplayWindow(ST7789_Object_t *pObj, uint32_t Xpos,
+		uint32_t Ypos, uint32_t Width, uint32_t Height);
+static int32_t ST7789_ReadRegWrap(void *Handle, uint8_t Reg, uint8_t *pData);
+static int32_t ST7789_WriteRegWrap(void *Handle, uint8_t Reg, uint8_t *pData,
+		uint32_t Length);
+static int32_t ST7789_SendDataWrap(void *Handle, uint8_t *pData,
+		uint32_t Length);
+static int32_t ST7789_RecvDataWrap(void *Handle, uint8_t *pData,
+		uint32_t Length);
+static int32_t ST7789_IO_Delay(ST7789_Object_t *pObj, uint32_t Delay);
+
+ST7789_LCD_Drv_t ST7789_LCD_Driver = { ST7789_Init, ST7789_DeInit,
+		ST7789_ReadID, ST7789_DisplayOn, ST7789_DisplayOff,
+		ST7789_SetBrightness, ST7789_GetBrightness, ST7789_SetOrientation,
+		ST7789_GetOrientation, ST7789_SetCursor, ST7789_DrawBitmap,
+		ST7789_FillRGBRect, ST7789_DrawHLine, ST7789_DrawVLine, ST7789_FillRect,
+		ST7789_GetPixel, ST7789_SetPixel, ST7789_GetXSize, ST7789_GetYSize };
+
+int32_t ST7789_RegisterBusIO(ST7789_Object_t *pObj, ST7789_IO_t *pIO) {
+	if (pObj == NULL)
+		return ST7789_ERROR;
+
+	pObj->IO.Init = pIO->Init;
+	pObj->IO.DeInit = pIO->DeInit;
+	pObj->IO.Address = pIO->Address;
+	pObj->IO.WriteReg = pIO->WriteReg;
+	pObj->IO.ReadReg = pIO->ReadReg;
+	pObj->IO.SendData = pIO->SendData;
+	pObj->IO.RecvData = pIO->RecvData;
+	pObj->IO.GetTick = pIO->GetTick;
+
+	pObj->Ctx.ReadReg = ST7789_ReadRegWrap;
+	pObj->Ctx.WriteReg = ST7789_WriteRegWrap;
+	pObj->Ctx.SendData = ST7789_SendDataWrap;
+	pObj->Ctx.RecvData = ST7789_RecvDataWrap;
+	pObj->Ctx.handle = pObj;
+
+	return pObj->IO.Init != NULL ? pObj->IO.Init() : ST7789_ERROR;
 }
 
-static void ST7789_SendData(uint8_t *buff, size_t buff_size) {
-	HAL_GPIO_WritePin(ST7789_DC_PORT, ST7789_DC_PIN, GPIO_PIN_SET);
-	HAL_SPI_Transmit(&ST7789_SPI_PORT, buff, buff_size, HAL_MAX_DELAY);
+int32_t ST7789_Init(ST7789_Object_t *pObj, uint32_t ColorCoding,
+		ST7789_Ctx_t *pDriver) {
+	uint8_t tmp;
+	st7789_write_reg(&pObj->Ctx, 0x01, NULL, 0);
+	ST7789_IO_Delay(pObj, 150);
+
+	st7789_write_reg(&pObj->Ctx, 0x11, NULL, 0);
+	ST7789_IO_Delay(pObj, 120);
+
+	tmp = ColorCoding;
+	st7789_write_reg(&pObj->Ctx, 0x3A, &tmp, 1);
+
+	ST7789_SetOrientation(pObj, pDriver);
+
+	st7789_write_reg(&pObj->Ctx, 0x21, NULL, 0); // Inversion ON
+	ST7789_IO_Delay(pObj, 10);
+
+	st7789_write_reg(&pObj->Ctx, 0x13, NULL, 0); // Normal Display ON
+	ST7789_IO_Delay(pObj, 10);
+
+	st7789_write_reg(&pObj->Ctx, 0x29, NULL, 0); // Display ON
+	ST7789_IO_Delay(pObj, 120);
+
+	return ST7789_OK;
 }
 
-static void ST7789_SetAddressWindow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1) {
-	uint16_t x_start = x0, x_end = x1;
-	uint16_t y_start = y0, y_end = y1;
+int32_t ST7789_SetOrientation(ST7789_Object_t *pObj, ST7789_Ctx_t *pDriver) {
+	uint8_t madctl = 0x00;
+	ST7789Ctx.Orientation = pDriver->Orientation;
+	ST7789Ctx.Type = pDriver->Type;
 
-	/* 1.14인치 135x240 해상도에 대한 방향별 물리 메모리 오프셋 보정 */
-#if ST7789_ROTATION == 0
-	x_start += 52; x_end += 52;
-	y_start += 40; y_end += 40;
-#elif ST7789_ROTATION == 1
-	x_start += 40; x_end += 40;
-	y_start += 53; y_end += 53;
-#elif ST7789_ROTATION == 2
-	x_start += 53; x_end += 53;
-	y_start += 40; y_end += 40;
-#elif ST7789_ROTATION == 3
-	x_start += 40; x_end += 40;
-	y_start += 52; y_end += 52;
-#endif
+	if (ST7789Ctx.Type == ST7789_135x240_screen) {
+		if (pDriver->Orientation == ST7789_ORIENTATION_PORTRAIT
+				|| pDriver->Orientation == ST7789_ORIENTATION_PORTRAIT_ROT180) {
+			ST7789Ctx.Width = 135;
+			ST7789Ctx.Height = 240;
+		} else {
+			ST7789Ctx.Width = 240;
+			ST7789Ctx.Height = 135;
+		}
+	} else {
+		ST7789Ctx.Width = 240;
+		ST7789Ctx.Height = 240;
+	}
 
-	uint8_t data[4];
+	switch (pDriver->Orientation) {
+	case ST7789_ORIENTATION_PORTRAIT:
+		madctl = 0x00;
+		break;
+	case ST7789_ORIENTATION_PORTRAIT_ROT180:
+		madctl = 0xC0;
+		break;
+	case ST7789_ORIENTATION_LANDSCAPE:
+		madctl = 0x70;
+		break;
+	case ST7789_ORIENTATION_LANDSCAPE_ROT180:
+		madctl = 0xA0;
+		break;
+	}
 
-	ST7789_SendCmd(0x2A);
-	data[0] = x_start >> 8;
-	data[1] = x_start & 0xFF;
-	data[2] = x_end >> 8;
-	data[3] = x_end & 0xFF;
-	ST7789_SendData(data, 4);
-
-	ST7789_SendCmd(0x2B);
-	data[0] = y_start >> 8;
-	data[1] = y_start & 0xFF;
-	data[2] = y_end >> 8;
-	data[3] = y_end & 0xFF;
-	ST7789_SendData(data, 4);
-
-	ST7789_SendCmd(0x2C); // RAMWR 명렁어
+	st7789_write_reg(&pObj->Ctx, ST7789_MADCTL, &madctl, 1);
+	return ST7789_SetDisplayWindow(pObj, 0, 0, ST7789Ctx.Width,
+			ST7789Ctx.Height);
 }
 
-void ST7789_Init(void) {
-	HAL_Delay(25);
+static int32_t ST7789_SetDisplayWindow(ST7789_Object_t *pObj, uint32_t Xpos,
+		uint32_t Ypos, uint32_t Width, uint32_t Height) {
+	uint8_t tmp[4];
+	uint32_t x_offset = 0, y_offset = 0;
 
-	/* 초기화 시작 시 CS를 LOW로 고정 */
-	ST7789_Select();
-
-	ST7789_SendCmd(0x01); // Software Reset
-	HAL_Delay(150);
-
-	ST7789_SendCmd(0x11); // Sleep Out
-	HAL_Delay(120);
-
-	ST7789_SendCmd(0x3A); // Color Mode
-	uint8_t data = 0x55;
-	ST7789_SendData(&data, 1); // 16-bit RGB565
-
-	ST7789_SendCmd(0x36); // MADCTL (방향 제어)
-#if ST7789_ROTATION == 0
-	data = 0x00;
-#elif ST7789_ROTATION == 1
-	data = 0xA0;
-#elif ST7789_ROTATION == 2
-	data = 0xC0;
-#elif ST7789_ROTATION == 3
-	data = 0x60;
-#endif
-	ST7789_SendData(&data, 1);
-
-	ST7789_SendCmd(0x21); // Display Inversion ON (IPS 패널 필수)
-	HAL_Delay(10);
-	ST7789_SendCmd(0x13); // Normal Display Mode ON
-	HAL_Delay(10);
-	ST7789_SendCmd(0x29); // Display ON
-	HAL_Delay(120);
-
-	/* 모든 초기화 명령 전송 후 CS 해제 */
-	ST7789_UnSelect();
-
-	/* 화면 초기화 */
-	ST7789_Fill_Color(BLACK);
-}
-
-void ST7789_Fill_Color(uint16_t color) {
-	uint16_t i, j;
-	uint8_t data[2] = {color >> 8, color & 0xFF};
-
-	ST7789_Select();
-	ST7789_SetAddressWindow(0, 0, ST7789_WIDTH_R - 1, ST7789_HEIGHT_R - 1);
-	for (i = 0; i < ST7789_WIDTH_R; i++) {
-		for (j = 0; j < ST7789_HEIGHT_R; j++) {
-			ST7789_SendData(data, 2);
+	if (ST7789Ctx.Type == ST7789_135x240_screen) {
+		if (ST7789Ctx.Orientation == ST7789_ORIENTATION_PORTRAIT) {
+			x_offset = 52;
+			y_offset = 40;
+		} else if (ST7789Ctx.Orientation == ST7789_ORIENTATION_PORTRAIT_ROT180) {
+			x_offset = 53;
+			y_offset = 40;
+		} else if (ST7789Ctx.Orientation == ST7789_ORIENTATION_LANDSCAPE) {
+			x_offset = 40;
+			y_offset = 53;
+		} else if (ST7789Ctx.Orientation == ST7789_ORIENTATION_LANDSCAPE_ROT180) {
+			x_offset = 40;
+			y_offset = 52;
 		}
 	}
-	ST7789_UnSelect();
+
+	Xpos += x_offset;
+	Ypos += y_offset;
+
+	st7789_write_reg(&pObj->Ctx, ST7789_CASET, NULL, 0);
+	tmp[0] = (Xpos >> 8) & 0xFF;
+	tmp[1] = Xpos & 0xFF;
+	tmp[2] = ((Xpos + Width - 1) >> 8) & 0xFF;
+	tmp[3] = (Xpos + Width - 1) & 0xFF;
+	st7789_send_data(&pObj->Ctx, tmp, 4);
+
+	st7789_write_reg(&pObj->Ctx, ST7789_RASET, NULL, 0);
+	tmp[0] = (Ypos >> 8) & 0xFF;
+	tmp[1] = Ypos & 0xFF;
+	tmp[2] = ((Ypos + Height - 1) >> 8) & 0xFF;
+	tmp[3] = (Ypos + Height - 1) & 0xFF;
+	st7789_send_data(&pObj->Ctx, tmp, 4);
+
+	st7789_write_reg(&pObj->Ctx, ST7789_RAMWR, NULL, 0);
+	return ST7789_OK;
 }
 
-void ST7789_DrawPixel(uint16_t x, uint16_t y, uint16_t color) {
-	if ((x >= ST7789_WIDTH_R) || (y >= ST7789_HEIGHT_R)) return;
-	uint8_t data[2] = {color >> 8, color & 0xFF};
-
-	ST7789_Select();
-	ST7789_SetAddressWindow(x, y, x, y);
-	ST7789_SendData(data, 2);
-	ST7789_UnSelect();
+int32_t ST7789_SetCursor(ST7789_Object_t *pObj, uint32_t Xpos, uint32_t Ypos) {
+	return ST7789_SetDisplayWindow(pObj, Xpos, Ypos, 1, 1);
 }
 
-void ST7789_DrawFilledRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color) {
-	if ((x >= ST7789_WIDTH_R) || (y >= ST7789_HEIGHT_R)) return;
-	if ((x + w - 1) >= ST7789_WIDTH_R) w = ST7789_WIDTH_R - x;
-	if ((y + h - 1) >= ST7789_HEIGHT_R) h = ST7789_HEIGHT_R - y;
+int32_t ST7789_FillRGBRect(ST7789_Object_t *pObj, uint32_t Xpos, uint32_t Ypos,
+		uint8_t *pData, uint32_t Width, uint32_t Height) {
+	if (((Xpos + Width) > ST7789Ctx.Width)
+			|| ((Ypos + Height) > ST7789Ctx.Height))
+		return ST7789_ERROR;
 
-	uint8_t data[2] = {color >> 8, color & 0xFF};
+	ST7789_SetDisplayWindow(pObj, Xpos, Ypos, Width, Height);
+	st7789_send_data(&pObj->Ctx, pData, Width * Height * 2);
+	return ST7789_OK;
+}
 
-	ST7789_Select();
-	ST7789_SetAddressWindow(x, y, x + w - 1, y + h - 1);
-	for (uint32_t i = 0; i < (uint32_t)(w * h); i++) {
-		ST7789_SendData(data, 2);
+int32_t ST7789_FillRect(ST7789_Object_t *pObj, uint32_t Xpos, uint32_t Ypos,
+		uint32_t Width, uint32_t Height, uint32_t Color) {
+	uint16_t swapped_color = (Color >> 8) | (Color << 8);
+	uint32_t color_32 = (swapped_color << 16) | swapped_color;
+	uint16_t line_buffer[Width];
+	uint32_t *p_buffer = (uint32_t*) line_buffer;
+
+	for (uint32_t i = 0; i < Width / 2; i++) {
+		p_buffer[i] = color_32;
 	}
-	ST7789_UnSelect();
-}
 
-void ST7789_DrawImage(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const uint16_t *data) {
-	if ((x >= ST7789_WIDTH_R) || (y >= ST7789_HEIGHT_R)) return;
-
-	ST7789_Select();
-	ST7789_SetAddressWindow(x, y, x + w - 1, y + h - 1);
-	ST7789_SendData((uint8_t *)data, sizeof(uint16_t) * w * h);
-	ST7789_UnSelect();
-}
-
-void ST7789_WriteChar(uint16_t x, uint16_t y, char ch, FontDef font, uint16_t color, uint16_t bgcolor) {
-	uint32_t i, b, j;
-
-	ST7789_Select();
-	ST7789_SetAddressWindow(x, y, x + font.width - 1, y + font.height - 1);
-	for (i = 0; i < font.height; i++) {
-		b = font.data[(ch - 32) * font.height + i];
-		for (j = 0; j < font.width; j++) {
-			if ((b << j) & 0x8000) {
-				uint8_t data[2] = {color >> 8, color & 0xFF};
-				ST7789_SendData(data, 2);
-			} else {
-				uint8_t data[2] = {bgcolor >> 8, bgcolor & 0xFF};
-				ST7789_SendData(data, 2);
-			}
-		}
+	if (Width % 2 != 0) {
+		line_buffer[Width - 1] = swapped_color;
 	}
-	ST7789_UnSelect();
+
+	ST7789_SetDisplayWindow(pObj, Xpos, Ypos, Width, Height);
+
+	for (uint32_t i = 0; i < Height; i++) {
+		st7789_send_data(&pObj->Ctx, (uint8_t* )line_buffer, Width * 2);
+	}
+
+	return ST7789_OK;
 }
 
-void ST7789_WriteString(uint16_t x, uint16_t y, const char *str, FontDef font, uint16_t color, uint16_t bgcolor) {
-	while (*str) {
-		if (x + font.width >= ST7789_WIDTH_R) {
-			x = 0;
-			y += font.height;
-			if (y + font.height >= ST7789_HEIGHT_R) break;
-			if (*str == ' ') { str++; continue; }
-		}
-		ST7789_WriteChar(x, y, *str, font, color, bgcolor);
-		x += font.width;
-		str++;
+int32_t ST7789_DrawHLine(ST7789_Object_t *pObj, uint32_t Xpos, uint32_t Ypos,
+		uint32_t Length, uint32_t Color) {
+	return ST7789_FillRect(pObj, Xpos, Ypos, Length, 1, Color);
+}
+
+int32_t ST7789_DrawVLine(ST7789_Object_t *pObj, uint32_t Xpos, uint32_t Ypos,
+		uint32_t Length, uint32_t Color) {
+	return ST7789_FillRect(pObj, Xpos, Ypos, 1, Length, Color);
+}
+
+int32_t ST7789_SetPixel(ST7789_Object_t *pObj, uint32_t Xpos, uint32_t Ypos,
+		uint32_t Color) {
+	return ST7789_FillRect(pObj, Xpos, Ypos, 1, 1, Color);
+}
+
+int32_t ST7789_DeInit(ST7789_Object_t *pObj) {
+	return ST7789_OK;
+}
+int32_t ST7789_ReadID(ST7789_Object_t *pObj, uint32_t *Id) {
+	*Id = 0;
+	return ST7789_OK;
+}
+int32_t ST7789_DisplayOn(ST7789_Object_t *pObj) {
+	return ST7789_OK;
+}
+int32_t ST7789_DisplayOff(ST7789_Object_t *pObj) {
+	return ST7789_OK;
+}
+int32_t ST7789_SetBrightness(ST7789_Object_t *pObj, uint32_t Brightness) {
+	return ST7789_ERROR;
+}
+int32_t ST7789_GetBrightness(ST7789_Object_t *pObj, uint32_t *Brightness) {
+	return ST7789_ERROR;
+}
+int32_t ST7789_GetOrientation(ST7789_Object_t *pObj, uint32_t *Orientation) {
+	*Orientation = ST7789Ctx.Orientation;
+	return ST7789_OK;
+}
+int32_t ST7789_DrawBitmap(ST7789_Object_t *pObj, uint32_t Xpos, uint32_t Ypos,
+		uint8_t *pBmp) {
+	return ST7789_OK;
+}
+int32_t ST7789_GetPixel(ST7789_Object_t *pObj, uint32_t Xpos, uint32_t Ypos,
+		uint32_t *Color) {
+	return ST7789_OK;
+}
+int32_t ST7789_GetXSize(ST7789_Object_t *pObj, uint32_t *XSize) {
+	*XSize = ST7789Ctx.Width;
+	return ST7789_OK;
+}
+int32_t ST7789_GetYSize(ST7789_Object_t *pObj, uint32_t *YSize) {
+	*YSize = ST7789Ctx.Height;
+	return ST7789_OK;
+}
+
+static int32_t ST7789_ReadRegWrap(void *Handle, uint8_t Reg, uint8_t *pData) {
+	return ((ST7789_Object_t*) Handle)->IO.ReadReg(Reg, pData);
+}
+static int32_t ST7789_WriteRegWrap(void *Handle, uint8_t Reg, uint8_t *pData,
+		uint32_t Length) {
+	return ((ST7789_Object_t*) Handle)->IO.WriteReg(Reg, pData, Length);
+}
+static int32_t ST7789_SendDataWrap(void *Handle, uint8_t *pData,
+		uint32_t Length) {
+	return ((ST7789_Object_t*) Handle)->IO.SendData(pData, Length);
+}
+static int32_t ST7789_RecvDataWrap(void *Handle, uint8_t *pData,
+		uint32_t Length) {
+	return ((ST7789_Object_t*) Handle)->IO.RecvData(pData, Length);
+}
+static int32_t ST7789_IO_Delay(ST7789_Object_t *pObj, uint32_t Delay) {
+	uint32_t tickstart = pObj->IO.GetTick();
+	while ((pObj->IO.GetTick() - tickstart) < Delay) {
 	}
+	return ST7789_OK;
 }

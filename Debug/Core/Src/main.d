@@ -58,8 +58,8 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Core/Inc/i2c.h ../Core/Inc/lptim.h ../Core/Inc/rtc.h \
  ../Core/Inc/sdmmc.h ../Core/Inc/spi.h ../Core/Inc/tim.h \
  ../Core/Inc/usart.h ../Core/Inc/gpio.h \
- ../Drivers/BSP/ST7789/st7789_lcd.h ../Drivers/BSP/ST7789/st7789.h \
- ../Drivers/BSP/ST7789/fonts.h ../Drivers/BSP/SDcard/SDcard.h \
+ ../Drivers/BSP/ST7789/st7789_lcd.h ../Drivers/BSP/ST7789/fonts.h \
+ ../Drivers/BSP/ST7789/st7789.h ../Drivers/BSP/SDcard/SDcard.h \
  ../Drivers/BSP/w25qxx/w25qxx.h ../Core/Inc/hid_bootloader.h \
  ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_core.h \
  ../USB_DEVICE/Target/usbd_conf.h \
@@ -143,8 +143,8 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Core/Inc/usart.h:
 ../Core/Inc/gpio.h:
 ../Drivers/BSP/ST7789/st7789_lcd.h:
-../Drivers/BSP/ST7789/st7789.h:
 ../Drivers/BSP/ST7789/fonts.h:
+../Drivers/BSP/ST7789/st7789.h:
 ../Drivers/BSP/SDcard/SDcard.h:
 ../Drivers/BSP/w25qxx/w25qxx.h:
 ../Core/Inc/hid_bootloader.h:

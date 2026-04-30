@@ -1,48 +1,120 @@
-#ifndef __ST7789_H
-#define __ST7789_H
+#ifndef ST7789_H
+#define ST7789_H
+
+#ifdef __cplusplus
+ extern "C" {
+#endif
 
 #include "main.h"
-#include "spi.h"
-#include "fonts.h"
+#include <stddef.h>
 
-#define ST7789_WIDTH   135
-#define ST7789_HEIGHT  240
-#define ST7789_ROTATION 0  // 0, 1, 2, 3 중 선택
+typedef struct {
+  void *handle;
+  int32_t (*ReadReg)(void *, uint8_t, uint8_t *);
+  int32_t (*WriteReg)(void *, uint8_t, uint8_t *, uint32_t);
+  int32_t (*SendData)(void *, uint8_t *, uint32_t);
+  int32_t (*RecvData)(void *, uint8_t *, uint32_t);
+} st7789_ctx_t;
 
-#define ST7789_SPI_PORT hspi4
-#define ST7789_DC_PORT  LCD_WR_RS_GPIO_Port
-#define ST7789_DC_PIN   LCD_WR_RS_Pin
-#define ST7789_CS_PORT  LCD_CS_GPIO_Port
-#define ST7789_CS_PIN   LCD_CS_Pin
+typedef int32_t (*ST7789_Init_Func)     (void);
+typedef int32_t (*ST7789_DeInit_Func)   (void);
+typedef int32_t (*ST7789_GetTick_Func)  (void);
+typedef int32_t (*ST7789_Delay_Func)    (uint32_t);
+typedef int32_t (*ST7789_WriteReg_Func) (uint8_t, uint8_t*, uint32_t);
+typedef int32_t (*ST7789_ReadReg_Func)  (uint8_t, uint8_t*);
+typedef int32_t (*ST7789_SendData_Func) (uint8_t*, uint32_t);
+typedef int32_t (*ST7789_RecvData_Func) (uint8_t*, uint32_t);
 
-/* 하드웨어 RST 핀이 없으므로 주석 처리합니다. */
-// #define ST7789_RST_PORT LCD_RST_GPIO_Port
-// #define ST7789_RST_PIN  LCD_RST_Pin
+typedef struct {
+  ST7789_Init_Func          Init;
+  ST7789_DeInit_Func        DeInit;
+  uint16_t                  Address;
+  ST7789_WriteReg_Func      WriteReg;
+  ST7789_ReadReg_Func       ReadReg;
+  ST7789_SendData_Func      SendData;
+  ST7789_RecvData_Func      RecvData;
+  ST7789_GetTick_Func       GetTick;
+} ST7789_IO_t;
 
-/* 색상 정의 */
-#define WHITE       0xFFFF
-#define BLACK       0x0000
-#define BLUE        0x001F
-#define RED         0xF800
-#define MAGENTA     0xF81F
-#define GREEN       0x07E0
-#define CYAN        0x7FFF
-#define YELLOW      0xFFE0
-#define GRAY        0X8430
+typedef struct {
+  ST7789_IO_t         IO;
+  st7789_ctx_t        Ctx;
+  uint8_t             IsInitialized;
+} ST7789_Object_t;
 
-/* 해상도 변수 추출용 */
-#ifdef USING_135X240
-#define ST7789_WIDTH  135
-#define ST7789_HEIGHT 240
+typedef struct {
+  uint32_t        Width;
+  uint32_t        Height;
+  uint32_t        Orientation;
+  uint8_t         Panel;
+  uint8_t         Type;
+} ST7789_Ctx_t;
+
+extern ST7789_Ctx_t ST7789Ctx;
+
+typedef struct {
+  int32_t (*Init             )(ST7789_Object_t*, uint32_t, ST7789_Ctx_t*);
+  int32_t (*DeInit           )(ST7789_Object_t*);
+  int32_t (*ReadID           )(ST7789_Object_t*, uint32_t*);
+  int32_t (*DisplayOn        )(ST7789_Object_t*);
+  int32_t (*DisplayOff       )(ST7789_Object_t*);
+  int32_t (*SetBrightness    )(ST7789_Object_t*, uint32_t);
+  int32_t (*GetBrightness    )(ST7789_Object_t*, uint32_t*);
+  int32_t (*SetOrientation   )(ST7789_Object_t*, ST7789_Ctx_t*);
+  int32_t (*GetOrientation   )(ST7789_Object_t*, uint32_t*);
+
+  int32_t ( *SetCursor       ) (ST7789_Object_t*, uint32_t, uint32_t);
+  int32_t ( *DrawBitmap      ) (ST7789_Object_t*, uint32_t, uint32_t, uint8_t *);
+  int32_t ( *FillRGBRect     ) (ST7789_Object_t*, uint32_t, uint32_t, uint8_t*, uint32_t, uint32_t);
+  int32_t ( *DrawHLine       ) (ST7789_Object_t*, uint32_t, uint32_t, uint32_t, uint32_t);
+  int32_t ( *DrawVLine       ) (ST7789_Object_t*, uint32_t, uint32_t, uint32_t, uint32_t);
+  int32_t ( *FillRect        ) (ST7789_Object_t*, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t);
+  int32_t ( *GetPixel        ) (ST7789_Object_t*, uint32_t, uint32_t, uint32_t*);
+  int32_t ( *SetPixel        ) (ST7789_Object_t*, uint32_t, uint32_t, uint32_t);
+  int32_t ( *GetXSize        ) (ST7789_Object_t*, uint32_t *);
+  int32_t ( *GetYSize        ) (ST7789_Object_t*, uint32_t *);
+} ST7789_LCD_Drv_t;
+
+#define ST7789_OK                (0)
+#define ST7789_ERROR             (-1)
+
+#define ST7789_135x240_screen    0x00U
+#define ST7789_240x240_screen    0x01U
+
+#define ST7789_ORIENTATION_PORTRAIT         0x00U
+#define ST7789_ORIENTATION_PORTRAIT_ROT180  0x01U
+#define ST7789_ORIENTATION_LANDSCAPE        0x02U
+#define ST7789_ORIENTATION_LANDSCAPE_ROT180 0x03U
+
+#define ST7789_FORMAT_RBG565                0x05U
+#define ST7789_FORMAT_DEFAULT               ST7789_FORMAT_RBG565
+
+extern ST7789_LCD_Drv_t ST7789_LCD_Driver;
+
+/* 외부 호출 가능하도록 전역 선언 */
+int32_t ST7789_RegisterBusIO (ST7789_Object_t *pObj, ST7789_IO_t *pIO);
+int32_t ST7789_Init(ST7789_Object_t *pObj, uint32_t ColorCoding, ST7789_Ctx_t *pDriver);
+int32_t ST7789_DeInit(ST7789_Object_t *pObj);
+int32_t ST7789_ReadID(ST7789_Object_t *pObj, uint32_t *Id);
+int32_t ST7789_DisplayOn(ST7789_Object_t *pObj);
+int32_t ST7789_DisplayOff(ST7789_Object_t *pObj);
+int32_t ST7789_SetBrightness(ST7789_Object_t *pObj, uint32_t Brightness);
+int32_t ST7789_GetBrightness(ST7789_Object_t *pObj, uint32_t *Brightness);
+int32_t ST7789_SetOrientation(ST7789_Object_t *pObj, ST7789_Ctx_t *pDriver);
+int32_t ST7789_GetOrientation(ST7789_Object_t *pObj, uint32_t *Orientation);
+int32_t ST7789_SetCursor(ST7789_Object_t *pObj, uint32_t Xpos, uint32_t Ypos);
+int32_t ST7789_DrawBitmap(ST7789_Object_t *pObj, uint32_t Xpos, uint32_t Ypos, uint8_t *pBmp);
+int32_t ST7789_FillRGBRect(ST7789_Object_t *pObj, uint32_t Xpos, uint32_t Ypos, uint8_t *pData, uint32_t Width, uint32_t Height);
+int32_t ST7789_DrawHLine(ST7789_Object_t *pObj, uint32_t Xpos, uint32_t Ypos, uint32_t Length, uint32_t Color);
+int32_t ST7789_DrawVLine(ST7789_Object_t *pObj, uint32_t Xpos, uint32_t Ypos, uint32_t Length, uint32_t Color);
+int32_t ST7789_FillRect(ST7789_Object_t *pObj, uint32_t Xpos, uint32_t Ypos, uint32_t Width, uint32_t Height, uint32_t Color);
+int32_t ST7789_GetPixel(ST7789_Object_t *pObj, uint32_t Xpos, uint32_t Ypos, uint32_t *Color);
+int32_t ST7789_SetPixel(ST7789_Object_t *pObj, uint32_t Xpos, uint32_t Ypos, uint32_t Color);
+int32_t ST7789_GetXSize(ST7789_Object_t *pObj, uint32_t *XSize);
+int32_t ST7789_GetYSize(ST7789_Object_t *pObj, uint32_t *YSize);
+
+#ifdef __cplusplus
+}
 #endif
 
-/* 함수 프로토타입 */
-void ST7789_Init(void);
-void ST7789_Fill_Color(uint16_t color);
-void ST7789_DrawImage(uint16_t x, uint16_t y, uint16_t w, uint16_t h, const uint16_t *data);
-void ST7789_DrawPixel(uint16_t x, uint16_t y, uint16_t color);
-void ST7789_DrawFilledRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color);
-void ST7789_WriteChar(uint16_t x, uint16_t y, char ch, FontDef font, uint16_t color, uint16_t bgcolor);
-void ST7789_WriteString(uint16_t x, uint16_t y, const char *str, FontDef font, uint16_t color, uint16_t bgcolor);
-
-#endif
+#endif /* ST7789_H */
