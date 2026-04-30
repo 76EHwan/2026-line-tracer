@@ -27,6 +27,7 @@ RM := rm -rf
 -include Drivers/BSP/MCT8316Z/subdir.mk
 -include Drivers/BSP/LSM6DS3TR-C/subdir.mk
 -include Drivers/BSP/DRV8316C/subdir.mk
+-include Drivers/BSP/Button/subdir.mk
 -include Core/Startup/subdir.mk
 -include Core/Src/subdir.mk
 -include objects.mk

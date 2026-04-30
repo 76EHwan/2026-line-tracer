@@ -18,6 +18,7 @@
 "./Core/Src/tim.o"
 "./Core/Src/usart.o"
 "./Core/Startup/startup_stm32h743vitx.o"
+"./Drivers/BSP/Button/button.o"
 "./Drivers/BSP/DRV8316C/drv8316crq1.o"
 "./Drivers/BSP/LSM6DS3TR-C/lsm6ds3tr-c.o"
 "./Drivers/BSP/MCT8316Z/mct8316z.o"

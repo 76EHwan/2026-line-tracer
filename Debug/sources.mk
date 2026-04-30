@@ -24,6 +24,7 @@ C_DEPS :=
 SUBDIRS := \
 Core/Src \
 Core/Startup \
+Drivers/BSP/Button \
 Drivers/BSP/DRV8316C \
 Drivers/BSP/LSM6DS3TR-C \
 Drivers/BSP/MCT8316Z \

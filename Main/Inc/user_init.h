@@ -11,6 +11,7 @@
 #include "main.h"
 #define LCD_ST7789
 
+void Button_init(void);
 void SDCard_Test(void);
 void W25QXX_Test(void);
 

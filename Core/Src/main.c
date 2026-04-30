@@ -42,6 +42,7 @@
 #include "usb_device.h"
 #include "SDcard.h"
 #include "user_init.h"
+#include "button.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -150,24 +151,34 @@ int main(void)
   MX_RNG_Init();
   /* USER CODE BEGIN 2 */
 	LCD7789_Test();
-	LCD_Printf(0, 0, "Hello World");
 	HAL_GPIO_TogglePin(E3_GPIO_Port, E3_Pin);
-
-	SDCard_Test();
-	HAL_Delay(5000);
-	LCD_Clear();
-	W25QXX_Test();
-	HAL_Delay(5000);
+	Button_init();
+//	SDCard_Test();
+//	HAL_Delay(5000);
+//	LCD_Clear();
+//	W25QXX_Test();
+//	HAL_Delay(5000);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
+	LCD_Clear();
 	while (1) {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-		LED_Blink(100);
+		uint8_t sw = Button_GetInput();
+		if (sw == INPUT_CMD_K_SINGLE) {
+			LCD_Printf(0, 0, "1");
+		}
+		if (sw == INPUT_CMD_K_DOUBLE) {
+			LCD_Printf(0, 0, "2");
+		}
+		if (sw == INPUT_CMD_K_HOLD) {
+			LCD_Printf(0, 0, "3");
+
+		}
 	}
   /* USER CODE END 3 */
 }

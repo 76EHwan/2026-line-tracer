@@ -9,6 +9,19 @@
 #include "main.h"
 #include "w25qxx.h"
 #include "SDcard.h"
+#include "button.h"
+
+void Button_init() {
+	Button_Init_Internal(&btn_k, KEY_GPIO_Port, KEY_Pin, GPIO_PIN_SET);
+	Button_Init_Internal(&btn_l, SWITCH_LEFT_GPIO_Port, SWITCH_LEFT_Pin,
+			GPIO_PIN_SET);
+	Button_Init_Internal(&btn_r, SWITCH_RIGHT_GPIO_Port, SWITCH_RIGHT_Pin,
+			GPIO_PIN_SET);
+	Button_Init_Internal(&btn_u, SWITCH_UP_GPIO_Port, SWITCH_UP_Pin,
+			GPIO_PIN_SET);
+	Button_Init_Internal(&btn_d, SWITCH_DOWN_GPIO_Port, SWITCH_DOWN_Pin,
+			GPIO_PIN_SET);
+}
 
 void SDCard_Test(void) {
 	FRESULT res;
