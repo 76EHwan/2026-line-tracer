@@ -2,6 +2,7 @@
 #include "st7789_lcd.h"
 #include "spi.h"
 #include "tim.h"
+#include "font.h"
 
 #include <stdarg.h>
 #include <stddef.h>
@@ -186,86 +187,109 @@ uint16_t LCD7789_BACK_COLOR = BLACK;
 
 void LCD7789_ShowChar(uint16_t x, uint16_t y, uint8_t num, uint8_t size,
 		uint8_t mode) {
-	uint32_t i, j;
-	uint16_t b;
-	uint16_t color = LCD7789_POINT_COLOR;
-	uint16_t bgcolor = LCD7789_BACK_COLOR;
+	uint8_t temp, t1, t;
+	uint16_t y0 = y;
+	uint16_t x0 = x;
+	uint16_t colortemp = LCD7789_POINT_COLOR;
+	uint32_t h, w;
 
-	FontDef *font;
-	if (size == 12)
-		font = (FontDef*) &Font_6x12;
-	else if (size == 16)
-		font = (FontDef*) &Font_8x16;
-	else if (size == 18)
-		font = (FontDef*) &Font_11x18;
-	else if (size == 26)
-		font = (FontDef*) &Font_16x26;
-	else
-		font = (FontDef*) &Font_7x10;
+	uint16_t write[size][size == 12 ? 6 : 8];
+	uint16_t count;
 
-	uint8_t f_width = font->width;
-	uint8_t f_height = font->height;
+	ST7789_GetXSize(&st7789_pObj, &w);
+	ST7789_GetYSize(&st7789_pObj, &h);
 
-	uint16_t write_buf[f_height * f_width];
-
-	if (num < ' ' || num > '~')
-		return;
+	num = num - ' ';
+	count = 0;
 
 	if (!mode) {
-		for (i = 0; i < f_height; i++) {
-			b = font->data[(num - 32) * f_height + i];
-			for (j = 0; j < f_width; j++) {
-				if ((b << j) & 0x8000) {
-					write_buf[i * f_width + j] = (color >> 8) | (color << 8);
-				} else {
-					write_buf[i * f_width + j] = (bgcolor >> 8)
-							| (bgcolor << 8);
+		for (t = 0; t < size; t++) {
+			if (size == 12)
+				temp = asc2_1206[num][t];
+			else
+				temp = asc2_1608[num][t];
+
+			for (t1 = 0; t1 < 8; t1++) {
+				if (temp & 0x80)
+					LCD7789_POINT_COLOR = (colortemp & 0xFF) << 8
+							| colortemp >> 8;
+				else
+					LCD7789_POINT_COLOR = (LCD7789_BACK_COLOR & 0xFF) << 8
+							| LCD7789_BACK_COLOR >> 8;
+
+				write[count][t / 2] = LCD7789_POINT_COLOR;
+				count++;
+				if (count >= size)
+					count = 0;
+
+				temp <<= 1;
+				y++;
+				if (y >= h) {
+					LCD7789_POINT_COLOR = colortemp;
+					return;
+				}
+				if ((y - y0) == size) {
+					y = y0;
+					x++;
+					if (x >= w) {
+						LCD7789_POINT_COLOR = colortemp;
+						return;
+					}
+					break;
 				}
 			}
 		}
-		ST7789_LCD_Driver.FillRGBRect(&st7789_pObj, x, y, (uint8_t*) write_buf,
-				f_width, f_height);
 	} else {
-		for (i = 0; i < f_height; i++) {
-			b = font->data[(num - 32) * f_height + i];
-			for (j = 0; j < f_width; j++) {
-				if ((b << j) & 0x8000) {
-					ST7789_LCD_Driver.SetPixel(&st7789_pObj, x + j, y + i,
-							color);
+		for (t = 0; t < size; t++) {
+			if (size == 12)
+				temp = asc2_1206[num][t];
+			else
+				temp = asc2_1608[num][t];
+			for (t1 = 0; t1 < 8; t1++) {
+				if (temp & 0x80)
+					write[count][t / 2] = (LCD7789_POINT_COLOR & 0xFF) << 8
+							| LCD7789_POINT_COLOR >> 8;
+				count++;
+				if (count >= size)
+					count = 0;
+
+				temp <<= 1;
+				y++;
+				if (y >= h) {
+					LCD7789_POINT_COLOR = colortemp;
+					return;
+				}
+				if ((y - y0) == size) {
+					y = y0;
+					x++;
+					if (x >= w) {
+						LCD7789_POINT_COLOR = colortemp;
+						return;
+					}
+					break;
 				}
 			}
 		}
 	}
+	ST7789_FillRGBRect(&st7789_pObj, x0, y0, (uint8_t*) &write,
+			size == 12 ? 6 : 8, size);
+	LCD7789_POINT_COLOR = colortemp;
 }
 
 void LCD7789_ShowString(uint16_t x, uint16_t y, uint16_t width, uint16_t height,
 		uint8_t size, uint8_t *p) {
-	uint16_t x0 = x;
+	uint8_t x0 = x;
 	width += x;
 	height += y;
-
-	FontDef *font;
-	if (size == 12)
-			font = (FontDef*) &Font_6x12;
-		else if (size == 16)
-			font = (FontDef*) &Font_8x16;
-		else if (size == 18)
-			font = (FontDef*) &Font_11x18;
-		else if (size == 26)
-			font = (FontDef*) &Font_16x26;
-		else
-			font = (FontDef*) &Font_7x10;
-
 	while ((*p <= '~') && (*p >= ' ')) {
-		if (x + font->width > width) {
+		if (x + size / 2 > width) {
 			x = x0;
-			y += font->height;
+			y += size;
 		}
 		if (y >= height)
 			break;
-
 		LCD7789_ShowChar(x, y, *p, size, 0);
-		x += font->width;
+		x += size / 2;
 		p++;
 	}
 }

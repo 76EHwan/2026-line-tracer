@@ -59,12 +59,22 @@ static ButtonEvent_t Button_GetEvent(ButtonHandle_t *btn) {
 
         case BTN_STATE_WAIT_DOUBLE:
             if (is_pressed) {
-                if (now - btn->start_time >= BTN_DEBOUNCE_TIME) {
-                    event = BTN_EVENT_DOUBLE_CLICK;
-                    btn->state = BTN_STATE_WAIT_RELEASE;
-                }
+                // 두 번째로 눌리는 순간 이벤트 발생 대신 상태만 전환하고 시작 시간 기록
+                btn->state = BTN_STATE_SECOND_PRESSED;
+                btn->start_time = now;
             } else if (now - btn->start_time > BTN_DOUBLE_CLICK_GAP) {
                 event = BTN_EVENT_SINGLE_CLICK;
+                btn->state = BTN_STATE_IDLE;
+            }
+            break;
+
+        case BTN_STATE_SECOND_PRESSED:
+            // 두 번째 누른 상태에서 손을 뗄 때 더블 클릭 판정
+            if (!is_pressed) {
+                if (now - btn->start_time >= BTN_DEBOUNCE_TIME) {
+                    event = BTN_EVENT_DOUBLE_CLICK;
+                }
+                // 노이즈(디바운스 미달)이든 정상 클릭이든 뗐으므로 IDLE로 돌아감
                 btn->state = BTN_STATE_IDLE;
             }
             break;

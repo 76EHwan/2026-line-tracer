@@ -100,11 +100,6 @@ int main(void)
 	HAL_GPIO_WritePin(E3_GPIO_Port, E3_Pin, GPIO_PIN_SET);
   /* USER CODE END 1 */
 
-  /* Enable the CPU Cache */
-
-  /* Enable I-Cache---------------------------------------------------------*/
-  SCB_EnableICache();
-
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
@@ -168,15 +163,20 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+		static uint8_t i = 0;
+		LCD_Printf(0, 0, "%3d", i);
 		uint8_t sw = Button_GetInput();
-		if (sw == INPUT_CMD_K_SINGLE) {
-			LCD_Printf(0, 0, "1");
-		}
-		if (sw == INPUT_CMD_K_DOUBLE) {
-			LCD_Printf(0, 0, "2");
-		}
-		if (sw == INPUT_CMD_K_HOLD) {
-			LCD_Printf(0, 0, "3");
+		switch (sw) {
+		case INPUT_CMD_K_SINGLE:
+			i++;
+			break;
+		case INPUT_CMD_K_DOUBLE:
+			i = 0;
+			break;
+		case INPUT_CMD_K_HOLD:
+			LCD_Printf(0, 0, "Boot mode ON");
+			JumpToBootloader();
+			break;
 
 		}
 	}

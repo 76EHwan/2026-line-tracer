@@ -5,6 +5,7 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
+../Drivers/BSP/ST7735/font.c \
 ../Drivers/BSP/ST7735/logo.c \
 ../Drivers/BSP/ST7735/logo_128_160.c \
 ../Drivers/BSP/ST7735/logo_160_80.c \
@@ -13,6 +14,7 @@ C_SRCS += \
 ../Drivers/BSP/ST7735/st7735_reg.c 
 
 OBJS += \
+./Drivers/BSP/ST7735/font.o \
 ./Drivers/BSP/ST7735/logo.o \
 ./Drivers/BSP/ST7735/logo_128_160.o \
 ./Drivers/BSP/ST7735/logo_160_80.o \
@@ -21,6 +23,7 @@ OBJS += \
 ./Drivers/BSP/ST7735/st7735_reg.o 
 
 C_DEPS += \
+./Drivers/BSP/ST7735/font.d \
 ./Drivers/BSP/ST7735/logo.d \
 ./Drivers/BSP/ST7735/logo_128_160.d \
 ./Drivers/BSP/ST7735/logo_160_80.d \
@@ -36,7 +39,7 @@ Drivers/BSP/ST7735/%.o Drivers/BSP/ST7735/%.su Drivers/BSP/ST7735/%.cyclo: ../Dr
 clean: clean-Drivers-2f-BSP-2f-ST7735
 
 clean-Drivers-2f-BSP-2f-ST7735:
-	-$(RM) ./Drivers/BSP/ST7735/logo.cyclo ./Drivers/BSP/ST7735/logo.d ./Drivers/BSP/ST7735/logo.o ./Drivers/BSP/ST7735/logo.su ./Drivers/BSP/ST7735/logo_128_160.cyclo ./Drivers/BSP/ST7735/logo_128_160.d ./Drivers/BSP/ST7735/logo_128_160.o ./Drivers/BSP/ST7735/logo_128_160.su ./Drivers/BSP/ST7735/logo_160_80.cyclo ./Drivers/BSP/ST7735/logo_160_80.d ./Drivers/BSP/ST7735/logo_160_80.o ./Drivers/BSP/ST7735/logo_160_80.su ./Drivers/BSP/ST7735/st7735.cyclo ./Drivers/BSP/ST7735/st7735.d ./Drivers/BSP/ST7735/st7735.o ./Drivers/BSP/ST7735/st7735.su ./Drivers/BSP/ST7735/st7735_lcd.cyclo ./Drivers/BSP/ST7735/st7735_lcd.d ./Drivers/BSP/ST7735/st7735_lcd.o ./Drivers/BSP/ST7735/st7735_lcd.su ./Drivers/BSP/ST7735/st7735_reg.cyclo ./Drivers/BSP/ST7735/st7735_reg.d ./Drivers/BSP/ST7735/st7735_reg.o ./Drivers/BSP/ST7735/st7735_reg.su
+	-$(RM) ./Drivers/BSP/ST7735/font.cyclo ./Drivers/BSP/ST7735/font.d ./Drivers/BSP/ST7735/font.o ./Drivers/BSP/ST7735/font.su ./Drivers/BSP/ST7735/logo.cyclo ./Drivers/BSP/ST7735/logo.d ./Drivers/BSP/ST7735/logo.o ./Drivers/BSP/ST7735/logo.su ./Drivers/BSP/ST7735/logo_128_160.cyclo ./Drivers/BSP/ST7735/logo_128_160.d ./Drivers/BSP/ST7735/logo_128_160.o ./Drivers/BSP/ST7735/logo_128_160.su ./Drivers/BSP/ST7735/logo_160_80.cyclo ./Drivers/BSP/ST7735/logo_160_80.d ./Drivers/BSP/ST7735/logo_160_80.o ./Drivers/BSP/ST7735/logo_160_80.su ./Drivers/BSP/ST7735/st7735.cyclo ./Drivers/BSP/ST7735/st7735.d ./Drivers/BSP/ST7735/st7735.o ./Drivers/BSP/ST7735/st7735.su ./Drivers/BSP/ST7735/st7735_lcd.cyclo ./Drivers/BSP/ST7735/st7735_lcd.d ./Drivers/BSP/ST7735/st7735_lcd.o ./Drivers/BSP/ST7735/st7735_lcd.su ./Drivers/BSP/ST7735/st7735_reg.cyclo ./Drivers/BSP/ST7735/st7735_reg.d ./Drivers/BSP/ST7735/st7735_reg.o ./Drivers/BSP/ST7735/st7735_reg.su
 
 .PHONY: clean-Drivers-2f-BSP-2f-ST7735
 

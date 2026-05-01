@@ -2,7 +2,6 @@
 #define BSP_ST7789_ST7789_LCD_H
 
 #include "main.h"
-#include "fonts.h"
 #include "st7789.h"
 #include <stdio.h>
 #include "SDcard.h"

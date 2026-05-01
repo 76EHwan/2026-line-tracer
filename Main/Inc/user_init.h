@@ -19,4 +19,6 @@ void W25QXX_Test(void);
 void Test_DRV8316C_Read_Status(DRV8316C_Handle_t *hdrv);
 #endif
 
+void JumpToBootloader(void);
+
 #endif /* USER_INIT_H_ */
