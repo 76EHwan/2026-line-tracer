@@ -8,17 +8,15 @@
 #ifndef USER_INIT_H_
 #define USER_INIT_H_
 
-#include "main.h"
-#define LCD_ST7789
+#include "stm32h7xx_hal.h"
+
+#define SYSTEM_MEMORY_BASE  0x1FF09800UL
+#define BOOTLOADER_FLAG     0xDEADBEEFUL
 
 void Button_init(void);
 void SDCard_Test(void);
 void W25QXX_Test(void);
-
-#ifdef FOC_CONTROL
-void Test_DRV8316C_Read_Status(DRV8316C_Handle_t *hdrv);
-#endif
-
 void JumpToBootloader(void);
+void Check_Bootloader_Request(void);
 
 #endif /* USER_INIT_H_ */

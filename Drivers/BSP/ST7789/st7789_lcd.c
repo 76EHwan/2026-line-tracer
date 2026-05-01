@@ -301,10 +301,22 @@ void LCD7789_Printf(uint16_t x, uint16_t y, const char *text, ...) {
 	vsprintf(txt, text, args);
 	va_end(args);
 
-	// 고정 크기 지정 (ST7735 시절의 고정 렌더링 스타일. 필요시 18이나 26으로 변경 가능)
-	uint8_t fixed_size = 16;
+	// 고정 크기 지정 (ST7735 시절의 고정 렌더링 스타일. 필요시 12나 16으로 변경 가능)
+	static uint8_t fixed_size = 16;
+	static uint8_t x_bias;
+	static uint8_t y_bias;
 
-	LCD7789_ShowString(x, y, ST7789Ctx.Width - x, ST7789Ctx.Height - y,
+	switch(fixed_size){
+	case 12:
+		x_bias = 6;
+		y_bias = 12;
+		break;
+	default:
+		x_bias = 8;
+		y_bias = 16;
+	}
+
+	LCD7789_ShowString(x_bias * x, y_bias * y, ST7789Ctx.Width - x, ST7789Ctx.Height - y,
 			fixed_size, (uint8_t*) txt);
 }
 

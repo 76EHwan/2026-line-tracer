@@ -98,6 +98,7 @@ int main(void)
 
   /* USER CODE BEGIN 1 */
 	HAL_GPIO_WritePin(E3_GPIO_Port, E3_Pin, GPIO_PIN_SET);
+	Check_Bootloader_Request();
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -174,10 +175,17 @@ int main(void)
 			i = 0;
 			break;
 		case INPUT_CMD_K_HOLD:
-			LCD_Printf(0, 0, "Boot mode ON");
-			JumpToBootloader();
+			LCD_Clear();
+			LCD_Printf(0, 0, "Boot mode");
+			uint8_t boot_time = 0;
+			while(HAL_GPIO_ReadPin(btn_k.port, btn_k.pin) == btn_k.active_state){
+				LCD_Printf(10, 0, "%d", 3 - boot_time/10);
+				HAL_Delay(100);
+				boot_time++;
+				if(boot_time == 40) JumpToBootloader();
+			}
+			LCD_Clear();
 			break;
-
 		}
 	}
   /* USER CODE END 3 */
