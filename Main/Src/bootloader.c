@@ -46,7 +46,7 @@ void JumpToBootloader(void) {
 void Boot_Loading(void) {
 	LCD_Clear();
 	LCD_Printf(0, 0, "Boot mode");
-	LCD_Printf(0, 1, "Hold your button");
+	LCD_Printf(0, 1, "Hold KEY Button");
 	HAL_Delay(1000);
 	uint8_t boot_time = 0;
 	while (HAL_GPIO_ReadPin(btn_k.port, btn_k.pin) == btn_k.active_state) {
