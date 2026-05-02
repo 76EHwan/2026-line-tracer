@@ -5,17 +5,12 @@
  *      Author: kth59
  */
 #include "main.h"
-#include "usb_device.h"
-#include "usbd_core.h"
-
 
 #include "user_init.h"
 #include "st7789_lcd.h"
 #include "w25qxx.h"
 #include "SDcard.h"
 #include "button.h"
-
-extern USBD_HandleTypeDef hUsbDeviceFS;
 
 void Button_init() {
 	Button_Init_Internal(&btn_k, KEY_GPIO_Port, KEY_Pin, GPIO_PIN_SET);
@@ -36,14 +31,12 @@ void SDCard_Test(void) {
 
 	LCD7789_Printf(0, 0, "[SD Test]");
 
-	// 마운트
 	res = SDCard_Mount();
 	if (res != FR_OK) {
 		LCD7789_Printf(0, 1, "FAIL: Mount %d", res);
 		return;
 	}
 
-	// 쓰기
 	res = SDCard_Write("test.txt", writeData);
 	if (res != FR_OK) {
 		LCD7789_Printf(0, 1, "FAIL: Write %d", res);
@@ -51,7 +44,6 @@ void SDCard_Test(void) {
 		return;
 	}
 
-	// 읽기
 	res = SDCard_Read("test.txt", readBuffer, sizeof(readBuffer));
 	if (res != FR_OK) {
 		LCD7789_Printf(0, 1, "FAIL: Read %d", res);
@@ -59,14 +51,12 @@ void SDCard_Test(void) {
 		return;
 	}
 
-	// 결과 비교
 	if (strcmp(writeData, readBuffer) == 0) {
 		LCD7789_Printf(0, 1, "SUCCESS!");
 	} else {
 		LCD7789_Printf(0, 1, "FAIL: Mismatch");
 	}
 
-	// 읽어온 내용 출력 (row=3부터 자동 줄바꿈)
 	LCD7789_Printf(0, 2, readBuffer);
 
 	SDCard_Unmount();
@@ -97,29 +87,3 @@ void Test_DRV8316C_Read_Status(DRV8316C_Handle_t *hdrv) {
 
 }
 #endif
-
-void Check_Bootloader_Request(void)
-{
-    HAL_PWR_EnableBkUpAccess();  // PWR 클럭 활성화 줄 삭제
-
-    if (RTC->BKP0R != BOOTLOADER_FLAG) {
-        return;
-    }
-
-    RTC->BKP0R = 0;
-
-    void (*SysMemBootJump)(void);
-    SysMemBootJump = (void(*)(void))(*((uint32_t*)(SYSTEM_MEMORY_BASE + 4)));
-    __set_MSP(*((uint32_t*)SYSTEM_MEMORY_BASE));
-    SysMemBootJump();
-
-    while(1) {}
-}
-
-void JumpToBootloader(void)
-{
-    HAL_PWR_EnableBkUpAccess();  // PWR 클럭 활성화 줄 삭제
-    RTC->BKP0R = BOOTLOADER_FLAG;
-
-    NVIC_SystemReset();
-}

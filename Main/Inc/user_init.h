@@ -8,11 +8,6 @@
 #ifndef USER_INIT_H_
 #define USER_INIT_H_
 
-#include "stm32h7xx_hal.h"
-
-#define SYSTEM_MEMORY_BASE  0x1FF09800UL
-#define BOOTLOADER_FLAG     0xDEADBEEFUL
-
 void Button_init(void);
 void SDCard_Test(void);
 void W25QXX_Test(void);

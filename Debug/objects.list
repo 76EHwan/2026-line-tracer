@@ -78,6 +78,8 @@
 "./FATFS/Target/bsp_driver_sd.o"
 "./FATFS/Target/fatfs_platform.o"
 "./FATFS/Target/sd_diskio.o"
+"./Main/Src/bootloader.o"
+"./Main/Src/menu.o"
 "./Main/Src/user_init.o"
 "./Middlewares/ST/STM32_USB_Device_Library/Class/CustomHID/Src/usbd_customhid.o"
 "./Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_core.o"

@@ -47,7 +47,10 @@ extern "C" {
 
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
-
+#define TEST_DISPLAY "/display"
+#define LCD_Printf LCD7789_Printf
+#define LCD_Clear LCD7789_Clear
+#define LCD_Set_Color LCD7789_Set_Color
 /* USER CODE END EM */
 
 /* Exported functions prototypes ---------------------------------------------*/
