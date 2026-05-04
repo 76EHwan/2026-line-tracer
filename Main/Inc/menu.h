@@ -30,9 +30,12 @@ typedef struct {
 
 /* 전역 변수 외부 선언 */
 extern MenuItem_t boot_menu_items[];
-extern MenuContext_t main_menu;
+extern MenuContext_t *current_menu;
 
 /* 함수 원형 선언 (Call by Reference) */
-void Menu_ProcessLoop(MenuContext_t *pCtx);
+void Menu_ProcessLoop();
+void Sensor_Menu();
+void Motor_Menu();
+void Drive_Menu();
 
 #endif /* INC_MENU_H_ */

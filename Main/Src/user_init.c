@@ -5,6 +5,7 @@
  *      Author: kth59
  */
 #include "main.h"
+#include "rng.h"
 
 #include "user_init.h"
 #include "st7789_lcd.h"

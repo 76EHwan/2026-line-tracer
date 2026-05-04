@@ -109,11 +109,11 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : MTR_nFAULT_L_Pin */
-  GPIO_InitStruct.Pin = MTR_nFAULT_L_Pin;
+  /*Configure GPIO pins : MTR_nFAULT_L_Pin SD_DETECT_Pin */
+  GPIO_InitStruct.Pin = MTR_nFAULT_L_Pin|SD_DETECT_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(MTR_nFAULT_L_GPIO_Port, &GPIO_InitStruct);
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
   /*Configure GPIO pins : MTR_nSLEEP_R_Pin MTR_DRVOFF_R_Pin */
   GPIO_InitStruct.Pin = MTR_nSLEEP_R_Pin|MTR_DRVOFF_R_Pin;
@@ -125,7 +125,7 @@ void MX_GPIO_Init(void)
   /*Configure GPIO pin : MTR_nFAULT_R_Pin */
   GPIO_InitStruct.Pin = MTR_nFAULT_R_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(MTR_nFAULT_R_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : SWITCH_LEFT_Pin SWITCH_UP_Pin SWITCH_DOWN_Pin SWITCH_RIGHT_Pin */
@@ -133,12 +133,6 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : SD_DETECT_Pin */
-  GPIO_InitStruct.Pin = SD_DETECT_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(SD_DETECT_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : F_CS_Pin */
   GPIO_InitStruct.Pin = F_CS_Pin;

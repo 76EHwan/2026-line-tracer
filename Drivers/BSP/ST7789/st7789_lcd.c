@@ -2,6 +2,7 @@
 #include "st7789_lcd.h"
 #include "spi.h"
 #include "tim.h"
+#include "rng.h"
 #include "font.h"
 
 #include <stdarg.h>
@@ -26,8 +27,6 @@
 
 #define LCD_Brightness_timer &htim1
 #define LCD_Brightness_channel TIM_CHANNEL_2
-
-extern RNG_HandleTypeDef hrng;
 
 static int32_t lcd7789_init(void);
 static int32_t lcd7789_gettick(void);
@@ -224,7 +223,7 @@ void LCD7789_ShowChar(uint16_t x, uint16_t y, uint8_t num, uint8_t size,
 
 				temp <<= 1;
 				y++;
-				if (y >= h) {
+				if (y > h) {
 					LCD7789_POINT_COLOR = colortemp;
 					return;
 				}
@@ -255,7 +254,7 @@ void LCD7789_ShowChar(uint16_t x, uint16_t y, uint8_t num, uint8_t size,
 
 				temp <<= 1;
 				y++;
-				if (y >= h) {
+				if (y > h) {
 					LCD7789_POINT_COLOR = colortemp;
 					return;
 				}
@@ -286,7 +285,7 @@ void LCD7789_ShowString(uint16_t x, uint16_t y, uint16_t width, uint16_t height,
 			x = x0;
 			y += size;
 		}
-		if (y >= height)
+		if (y > height)
 			break;
 		LCD7789_ShowChar(x, y, *p, size, 0);
 		x += size / 2;
@@ -305,19 +304,25 @@ void LCD7789_Printf(uint16_t x, uint16_t y, const char *text, ...) {
 	static uint8_t fixed_size = 16;
 	static uint8_t x_bias;
 	static uint8_t y_bias;
+	static uint8_t offset_x = 0;
+	static uint8_t offset_y = 0;
 
-	switch(fixed_size){
+	switch (fixed_size) {
 	case 12:
 		x_bias = 6;
 		y_bias = 12;
+		offset_x = 1;
+		offset_y = 0;
 		break;
 	default:
 		x_bias = 8;
 		y_bias = 16;
+		offset_x = 3;
+		offset_y = 0;
 	}
 
-	LCD7789_ShowString(x_bias * x, y_bias * y, ST7789Ctx.Width - x, ST7789Ctx.Height - y,
-			fixed_size, (uint8_t*) txt);
+	LCD7789_ShowString(x_bias * x + offset_x, y_bias * y + offset_y, ST7789Ctx.Width - x,
+			ST7789Ctx.Height - y, fixed_size, (uint8_t*) txt);
 }
 
 static int32_t lcd7789_init(void) {
@@ -559,7 +564,7 @@ void LCD7789_Display_Random_BMP_From_SD(const TCHAR *address) {
 	SDCard_Unmount();
 }
 
-void LCD7789_Set_Color(uint16_t point, uint16_t back){
+void LCD7789_Set_Color(uint16_t point, uint16_t back) {
 	LCD7789_POINT_COLOR = point;
 	LCD7789_BACK_COLOR = back;
 }

@@ -59,7 +59,7 @@ void Boot_Loading(void) {
 			HAL_Delay(1000);
 			for (uint8_t i = 1; i < 15; i++) {
 				LCD_Printf(i, 1, "=");
-				HAL_Delay(100);
+				HAL_Delay(50);
 			}
 			HAL_Delay(500);
 			LCD_Clear();
