@@ -21,11 +21,15 @@ __STATIC_INLINE void GoTo_Motor_Menu(void);
 
 __STATIC_INLINE void GoTo_Drive_Menu(void);
 
+__STATIC_INLINE void GoTo_Param_Menu(void);
+
+
 MenuItem_t main_menu_items[] = { { .name = "Boot Load", .pfnActionCallback =
 		Boot_Loading }, { .name = "Sensor Menu", .pfnActionCallback =
 		GoTo_Sensor_Menu }, { .name = "Motor Menu", .pfnActionCallback =
 		GoTo_Motor_Menu }, { .name = "Drive Menu", .pfnActionCallback =
-		GoTo_Drive_Menu }, };
+		GoTo_Drive_Menu }, { .name = "Param Menu", .pfnActionCallback =
+		GoTo_Param_Menu }, };
 
 MenuItem_t sensor_menu_items[] = { { .name = "Calibration", .pfnActionCallback =
 NULL }, { .name = "Raw", .pfnActionCallback = NULL }, { .name = "Normalized",
@@ -44,14 +48,19 @@ NULL }, { .name = "2nd Drive", .pfnActionCallback = NULL }, { .name =
 		"3rd Drive", .pfnActionCallback = NULL }, { .name = "4th Drive",
 		.pfnActionCallback =
 		NULL }, { .name = "Update Param", .pfnActionCallback =
-				NULL }, { .name = "View Marker", .pfnActionCallback =
+NULL }, { .name = "View Marker", .pfnActionCallback =
 NULL }, { .name = "Save Flash", .pfnActionCallback =
-		NULL }, { .name = "Save MicroSD", .pfnActionCallback =
-				NULL },
-};
+NULL }, { .name = "Save MicroSD", .pfnActionCallback =
+NULL }, };
+
+MenuItem_t param_menu_items[] = { { .name = "LED Test", .pfnActionCallback =
+		LED_Test }, { .name = "LCD Test", .pfnActionCallback = LCD7789_Test }, { .name =
+		"Flash Test", .pfnActionCallback = NULL }, { .name = "SD Card Test",
+		.pfnActionCallback =
+		NULL }, };
 
 MenuContext_t main_menu = { .category_name = "Main Menu", .pMenuItems =
-		main_menu_items, .item_count = 4, .prev_index = 0, .cursor_index = 0 };
+		main_menu_items, .item_count = 5, .prev_index = 0, .cursor_index = 0 };
 
 MenuContext_t sensor_menu = { .category_name = "Sensor Menu", .pMenuItems =
 		sensor_menu_items, .item_count = 5, .prev_index = 0, .cursor_index = 0 };
@@ -61,6 +70,10 @@ MenuContext_t motor_menu = { .category_name = "Motor Menu", .pMenuItems =
 
 MenuContext_t drive_menu = { .category_name = "Drive Menu", .pMenuItems =
 		drive_menu_items, .item_count = 8, .prev_index = 0, .cursor_index = 0 };
+
+MenuContext_t param_menu = { .category_name = "Param Menu", .pMenuItems =
+		param_menu_items, .item_count = 4, .prev_index = 0, .cursor_index = 0 };
+
 
 MenuContext_t *current_menu = &main_menu;
 
@@ -138,5 +151,10 @@ __STATIC_INLINE void GoTo_Motor_Menu(void) {
 
 __STATIC_INLINE void GoTo_Drive_Menu(void) {
 	current_menu = &drive_menu;
+	current_menu->cursor_index = 0;
+}
+
+__STATIC_INLINE void GoTo_Param_Menu(void) {
+	current_menu = &param_menu;
 	current_menu->cursor_index = 0;
 }

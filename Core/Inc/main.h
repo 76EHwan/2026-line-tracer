@@ -47,6 +47,11 @@ extern "C" {
 
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
+
+#define LED_ON		HAL_GPIO_WritePin(E3_GPIO_Port, E3_Pin, GPIO_PIN_SET)
+#define LED_OFF		HAL_GPIO_WritePin(E3_GPIO_Port, E3_Pin, GPIO_PIN_RESET)
+#define LED_TOGGLE	HAL_GPIO_TogglePin(E3_GPIO_Port, E3_Pin)
+
 #define TEST_DISPLAY "/display"
 #define LCD_Printf LCD7789_Printf
 #define LCD_Clear LCD7789_Clear
@@ -57,6 +62,7 @@ extern "C" {
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
+void LED_Test();
 
 /* USER CODE END EFP */
 

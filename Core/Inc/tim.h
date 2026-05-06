@@ -34,6 +34,8 @@ extern "C" {
 
 extern TIM_HandleTypeDef htim1;
 
+extern TIM_HandleTypeDef htim2;
+
 extern TIM_HandleTypeDef htim3;
 
 extern TIM_HandleTypeDef htim4;
@@ -51,6 +53,7 @@ extern TIM_HandleTypeDef htim16;
 /* USER CODE END Private defines */
 
 void MX_TIM1_Init(void);
+void MX_TIM2_Init(void);
 void MX_TIM3_Init(void);
 void MX_TIM4_Init(void);
 void MX_TIM5_Init(void);
@@ -61,6 +64,22 @@ void MX_TIM16_Init(void);
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 /* USER CODE BEGIN Prototypes */
+__weak void TIM1_IRQ_Handler();
+__weak void TIM2_IRQ_Handler();
+__weak void TIM3_IRQ_Handler();
+__weak void TIM4_IRQ_Handler();
+__weak void TIM5_IRQ_Handler();
+__weak void TIM6_IRQ_Handler();
+__weak void TIM7_IRQ_Handler();
+__weak void TIM8_IRQ_Handler();
+__weak void TIM12_IRQ_Handler();
+__weak void TIM13_IRQ_Handler();
+__weak void TIM14_IRQ_Handler();
+__weak void TIM15_IRQ_Handler();
+__weak void TIM16_IRQ_Handler();
+__weak void TIM17_IRQ_Handler();
+
+
 
 /* USER CODE END Prototypes */
 

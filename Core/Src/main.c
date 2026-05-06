@@ -88,6 +88,10 @@ void LED_Blink(uint32_t delay) {
 	HAL_Delay(500 - 1);
 }
 
+void LED_Test(){
+	LED_Blink(250);
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -148,10 +152,11 @@ int main(void)
   MX_FATFS_Init();
   MX_RNG_Init();
   MX_TIM7_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
 	Button_init();
 	LCD7789_Test();
-	HAL_GPIO_TogglePin(E3_GPIO_Port, E3_Pin);
+	LED_TOGGLE;
 
   /* USER CODE END 2 */
 
