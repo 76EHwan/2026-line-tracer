@@ -1,4 +1,5 @@
 #include "w25qxx.h"
+#include <math.h>
 
 #define delay(ms) HAL_Delay(ms-1)
 #define get_tick() HAL_GetTick()
@@ -94,13 +95,6 @@ void W25Qx_Read_ID(uint16_t *ID) {
 
 	*ID = (rx[4] << 8) | rx[5];
 }
-
-#include <math.h>
-/**
- * @brief  Get W25QX Parameter.
- * @param  Para: W25Qx_Parameter
- * @retval NULL
- */
 
 uint8_t W25Qx_Get_Parameter(W25Qx_Parameter *Para) {
 	uint16_t id;

@@ -74,6 +74,7 @@ extern ButtonHandle_t btn_r;
 extern ButtonHandle_t btn_k;
 
 void Button_Init_Internal(ButtonHandle_t *btn, GPIO_TypeDef *port, uint16_t pin, GPIO_PinState active_state);
-UserInput_t Button_GetInput(void);
+UserInput_t Button_Get_Input(void);
+void Button_Wait_Release(ButtonHandle_t *btn);
 
 #endif /* BSP_BUTTON_BUTTON_H_ */

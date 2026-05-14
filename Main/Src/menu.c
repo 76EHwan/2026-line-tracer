@@ -11,6 +11,9 @@
 #include "st7789_lcd.h"
 #include "bootloader.h"
 #include "button.h"
+#include "sensor.h"
+//#include "motor.h"
+//#include "drive.h"
 
 // 현재 화면에 표시할 메뉴를 가리키는 전역 포인터
 
@@ -32,7 +35,7 @@ MenuItem_t main_menu_items[] = { { .name = "Boot Load", .pfnActionCallback =
 		GoTo_Param_Menu }, };
 
 MenuItem_t sensor_menu_items[] = { { .name = "Calibration", .pfnActionCallback =
-NULL }, { .name = "Raw", .pfnActionCallback = NULL }, { .name = "Normalized",
+Sensor_Calibration }, { .name = "Raw", .pfnActionCallback = Sensor_Raw_Printf }, { .name = "Normalized",
 		.pfnActionCallback = NULL }, { .name = "State", .pfnActionCallback =
 NULL }, { .name = "Update Thres", .pfnActionCallback = NULL }, };
 
@@ -55,7 +58,7 @@ NULL }, };
 
 MenuItem_t param_menu_items[] = { { .name = "LED Test", .pfnActionCallback =
 		LED_Test }, { .name = "LCD Test", .pfnActionCallback = LCD7789_Test }, { .name =
-		"Flash Test", .pfnActionCallback = NULL }, { .name = "SD Card Test",
+		"Flash Test", .pfnActionCallback = W25QXX_Test }, { .name = "SD Card Test",
 		.pfnActionCallback =
 		NULL }, };
 
@@ -94,16 +97,21 @@ __STATIC_INLINE void Show_Menu(MenuContext_t *pCtx) {
 	LCD_Set_Color(WHITE, BLACK);
 }
 __STATIC_INLINE void Select_Menu(MenuContext_t *pCtx) {
-	UserInput_t bt = Button_GetInput();
+	UserInput_t bt = Button_Get_Input();
 
 	switch (bt) {
-	case INPUT_CMD_K_SINGLE:
+	case INPUT_CMD_D_SINGLE:
 		pCtx->cursor_index =
 				(pCtx->cursor_index == (pCtx->item_count - 1)) ?
 						0 : (pCtx->cursor_index + 1);
 		break;
+	case INPUT_CMD_U_SINGLE:
+			pCtx->cursor_index =
+					(pCtx->cursor_index == 0) ?
+							(pCtx->item_count - 1) : (pCtx->cursor_index - 1);
+			break;
 
-	case INPUT_CMD_K_DOUBLE:
+	case INPUT_CMD_L_SINGLE:
 		if (current_menu != &main_menu) {
 			current_menu = &main_menu;
 			current_menu->cursor_index = 0;
@@ -111,9 +119,8 @@ __STATIC_INLINE void Select_Menu(MenuContext_t *pCtx) {
 		}
 		break;
 
-	case INPUT_CMD_K_HOLD:
-		while (HAL_GPIO_ReadPin(btn_k.port, btn_k.pin) == btn_k.active_state)
-			;
+	case INPUT_CMD_R_SINGLE:
+		while (HAL_GPIO_ReadPin(btn_r.port, btn_r.pin) == btn_k.active_state);
 		LCD_Clear();
 		uint8_t selected = pCtx->cursor_index;
 		if (pCtx->pMenuItems[selected].pfnActionCallback != NULL) {

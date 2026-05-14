@@ -13,6 +13,8 @@
 #include "SDcard.h"
 #include "button.h"
 
+#define TEST_ADDRESS 0x000000
+
 void Button_init() {
 	Button_Init_Internal(&btn_k, KEY_GPIO_Port, KEY_Pin, GPIO_PIN_SET);
 	Button_Init_Internal(&btn_l, SWITCH_LEFT_GPIO_Port, SWITCH_LEFT_Pin,
@@ -67,7 +69,19 @@ void W25QXX_Test(void) {
 	W25Qx_Init();
 	uint16_t id;
 	W25Qx_Read_ID(&id);
-	LCD7789_Printf(0, 0, "%04X", id);
+	LCD_Printf(0, 0, "%04X", id);
+	char build_time_str[32];
+	char read_buffer[32];
+	sprintf(build_time_str, "%s %s", __DATE__, __TIME__);
+	uint16_t data_length = strlen(build_time_str) + 1;
+	W25Qx_Erase_Block(0);
+	W25Qx_Write((uint8_t*) build_time_str, TEST_ADDRESS, data_length);
+	memset(read_buffer, 0, sizeof(read_buffer));
+	W25Qx_Read((uint8_t*) read_buffer, TEST_ADDRESS, data_length);
+	LCD_Printf(0, 1, "Last Update:");
+	LCD_Printf(0, 2, "%s", read_buffer);
+	while(Button_Get_Input() != INPUT_CMD_K_DOUBLE);
+	LCD_Clear();
 }
 
 #ifdef FOC_CONTROL

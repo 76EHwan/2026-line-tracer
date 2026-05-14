@@ -26,7 +26,7 @@ void Button_Init_Internal(ButtonHandle_t *btn, GPIO_TypeDef *port, uint16_t pin,
     btn->active_state = active_state;
 }
 
-static ButtonEvent_t Button_GetEvent(ButtonHandle_t *btn) {
+static ButtonEvent_t Button_Get_Event(ButtonHandle_t *btn) {
     uint32_t now = HAL_GetTick();
 
     // 설정된 active_state와 현재 핀 상태가 일치하면 '눌림'으로 판단
@@ -99,13 +99,13 @@ static ButtonEvent_t Button_GetEvent(ButtonHandle_t *btn) {
     return event;
 }
 
-UserInput_t Button_GetInput(void) {
+UserInput_t Button_Get_Input(void) {
     // 1. 모든 버튼의 상태 머신을 갱신 (누락 방지)
-    ButtonEvent_t evt_u = Button_GetEvent(&btn_u);
-    ButtonEvent_t evt_d = Button_GetEvent(&btn_d);
-    ButtonEvent_t evt_l = Button_GetEvent(&btn_l);
-    ButtonEvent_t evt_r = Button_GetEvent(&btn_r);
-    ButtonEvent_t evt_k = Button_GetEvent(&btn_k);
+    ButtonEvent_t evt_u = Button_Get_Event(&btn_u);
+    ButtonEvent_t evt_d = Button_Get_Event(&btn_d);
+    ButtonEvent_t evt_l = Button_Get_Event(&btn_l);
+    ButtonEvent_t evt_r = Button_Get_Event(&btn_r);
+    ButtonEvent_t evt_k = Button_Get_Event(&btn_k);
 
     // 2. 우선순위에 따라 커맨드 반환 (K > U/D > L/R)
     if (evt_k == BTN_EVENT_SINGLE_CLICK)    return INPUT_CMD_K_SINGLE;
@@ -129,4 +129,8 @@ UserInput_t Button_GetInput(void) {
     if (evt_r == BTN_EVENT_LONG_PRESS_HOLD) return INPUT_CMD_R_HOLD;
 
     return INPUT_CMD_NONE;
+}
+
+void Button_Wait_Release(ButtonHandle_t *btn) {
+	while (HAL_GPIO_ReadPin(btn->port, btn->pin) == btn->active_state);
 }
