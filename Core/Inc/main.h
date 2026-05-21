@@ -42,6 +42,7 @@ extern "C" {
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
+extern uint8_t sdcard_err;
 
 /* USER CODE END EC */
 

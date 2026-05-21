@@ -17,4 +17,4 @@
 ../Drivers/BSP/ST7735/st7735_lcd.c:358:16:lcd7735_recvdata	24	static
 ../Drivers/BSP/ST7735/st7735_lcd.c:367:6:LCD7735_Printf	552	static
 ../Drivers/BSP/ST7735/st7735_lcd.c:381:6:LCD7735_Clear	24	static
-../Drivers/BSP/ST7735/st7735_lcd.c:390:6:LCD7735_Display_Random_BMP_From_SD	5264	static
+../Drivers/BSP/ST7735/st7735_lcd.c:390:6:LCD7735_Display_Random_BMP_From_SD	5528	static

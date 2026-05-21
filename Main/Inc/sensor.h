@@ -32,4 +32,7 @@ extern volatile SensorDataTypeDef ir_sensor;
 void Sensor_Calibration();
 void Sensor_Raw_Printf();
 
+void TIM7_IRQ_Handler(void);
+void ADC3_IRQ_Handler(void);
+
 #endif /* INC_SENSOR_H_ */

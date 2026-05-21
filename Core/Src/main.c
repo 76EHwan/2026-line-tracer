@@ -65,12 +65,14 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+uint8_t sdcard_err = 1;
 
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 void PeriphCommonClock_Config(void);
+static void MPU_Config(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -88,7 +90,7 @@ void LED_Blink(uint32_t delay) {
 	HAL_Delay(500 - 1);
 }
 
-void LED_Test(){
+void LED_Test() {
 	LED_Blink(250);
 }
 
@@ -102,9 +104,19 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-	HAL_GPIO_WritePin(E3_GPIO_Port, E3_Pin, GPIO_PIN_SET);
 	Check_Bootloader_Request();
   /* USER CODE END 1 */
+
+  /* MPU Configuration--------------------------------------------------------*/
+  MPU_Config();
+
+  /* Enable the CPU Cache */
+
+  /* Enable I-Cache---------------------------------------------------------*/
+  SCB_EnableICache();
+
+  /* Enable D-Cache---------------------------------------------------------*/
+  SCB_EnableDCache();
 
   /* MCU Configuration--------------------------------------------------------*/
 
@@ -156,7 +168,8 @@ int main(void)
   /* USER CODE BEGIN 2 */
 	Button_init();
 	LCD7789_Test();
-	LED_TOGGLE;
+	LED_ON;
+//	LED_TOGGLE;
 
   /* USER CODE END 2 */
 
@@ -274,6 +287,43 @@ void PeriphCommonClock_Config(void)
  */
 /* USER CODE END 4 */
 
+ /* MPU Configuration */
+
+void MPU_Config(void)
+{
+  MPU_Region_InitTypeDef MPU_InitStruct = {0};
+
+  /* Disables the MPU */
+  HAL_MPU_Disable();
+
+  /** Initializes and configures the Region and the memory to be protected
+  */
+  MPU_InitStruct.Enable = MPU_REGION_ENABLE;
+  MPU_InitStruct.Number = MPU_REGION_NUMBER0;
+  MPU_InitStruct.BaseAddress = 0x30040000;
+  MPU_InitStruct.Size = MPU_REGION_SIZE_32KB;
+  MPU_InitStruct.SubRegionDisable = 0x0;
+  MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL1;
+  MPU_InitStruct.AccessPermission = MPU_REGION_FULL_ACCESS;
+  MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_DISABLE;
+  MPU_InitStruct.IsShareable = MPU_ACCESS_SHAREABLE;
+  MPU_InitStruct.IsCacheable = MPU_ACCESS_NOT_CACHEABLE;
+  MPU_InitStruct.IsBufferable = MPU_ACCESS_NOT_BUFFERABLE;
+
+  HAL_MPU_ConfigRegion(&MPU_InitStruct);
+
+  /** Initializes and configures the Region and the memory to be protected
+  */
+  MPU_InitStruct.Number = MPU_REGION_NUMBER1;
+  MPU_InitStruct.BaseAddress = 0x38000000;
+  MPU_InitStruct.Size = MPU_REGION_SIZE_64KB;
+
+  HAL_MPU_ConfigRegion(&MPU_InitStruct);
+  /* Enables the MPU */
+  HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
+
+}
+
 /**
   * @brief  This function is executed in case of error occurrence.
   * @retval None
@@ -282,7 +332,8 @@ void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
 	/* User can add his own implementation to report the HAL error return state */
-
+	if (sdcard_err == 1)
+		return;
 	while (1) {
 		HAL_GPIO_TogglePin(E3_GPIO_Port, E3_Pin);
 		HAL_Delay(50);

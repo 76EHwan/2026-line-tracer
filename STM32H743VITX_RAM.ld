@@ -45,14 +45,33 @@ MEMORY
 {
   RAM_EXEC (xrw)  : ORIGIN = 0x24000000, LENGTH = 512K
   DTCMRAM (xrw)   : ORIGIN = 0x20000000, LENGTH = 128K
-  RAM_D2 (xrw)    : ORIGIN = 0x30000000, LENGTH = 288K
-  RAM_D3 (xrw)    : ORIGIN = 0x38000000, LENGTH = 64K
+ /* 기존 288K를 256K(SRAM1+2)와 32K(SRAM3)로 분리 */
+  RAM_D2 (xrw)    : ORIGIN = 0x30000000, LENGTH = 256K       
+  RAM_D2_NC (xrw) : ORIGIN = 0x30040000, LENGTH = 32K   /* 캐시 불가 영역 (ADC 1, 2) */
+  
+  /* ADC 3을 위한 D3 SRAM 영역 (BDMA 전용) */
+  RAM_D3_NC (xrw) : ORIGIN = 0x38000000, LENGTH = 64K   /* 캐시 불가 영역 (ADC 3) */
+  
   ITCMRAM (xrw)   : ORIGIN = 0x00000000, LENGTH = 64K
 }
 
 /* Define output sections */
 SECTIONS
 {
+  .non_cacheable_d2 :
+  {
+    . = ALIGN(4);
+    *(.non_cacheable_d2)
+    . = ALIGN(4);
+  } >RAM_D2_NC
+
+  /* ADC3 DMA 버퍼를 위한 캐시 불가 섹션 */
+  .non_cacheable_d3 :
+  {
+    . = ALIGN(4);
+    *(.non_cacheable_d3)
+    . = ALIGN(4);
+  } >RAM_D3_NC
   /* The startup code goes first into RAM_EXEC */
   .isr_vector :
   {
@@ -136,7 +155,7 @@ SECTIONS
 
     . = ALIGN(4);
     _edata = .;        /* define a global symbol at data end */
-  } >DTCMRAM AT> RAM_EXEC
+  } >RAM_D2 AT> RAM_EXEC
 
   /* Uninitialized data section */
   . = ALIGN(4);
@@ -152,7 +171,7 @@ SECTIONS
     . = ALIGN(4);
     _ebss = .;         /* define a global symbol at bss end */
     __bss_end__ = _ebss;
-  } >DTCMRAM
+  } >RAM_D2
 
   /* User_heap_stack section, used to check that there is enough RAM left */
   ._user_heap_stack :
@@ -172,6 +191,6 @@ SECTIONS
     libm.a ( * )
     libgcc.a ( * )
   }
-
+  
   .ARM.attributes 0 : { *(.ARM.attributes) }
 }

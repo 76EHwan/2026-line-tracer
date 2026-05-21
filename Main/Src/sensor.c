@@ -11,8 +11,11 @@
 
 #define SENSOR_TRIG_TIM &htim
 
-#define SENSOR_IR_EN	HAL_GPIO_WritePin(SENSOR_IR_EN_GPIO_Port, SENSOR_IR_EN_Pin, GPIO_PIN_SET);
-#define SENSOR_IR_DIS	HAL_GPIO_WritePin(SENSOR_IR_EN_GPIO_Port, SENSOR_IR_EN_Pin, GPIO_PIN_RESET);
+#define SENSOR_IR_EN	HAL_GPIO_WritePin(SENSOR_IR_EN_GPIO_Port, SENSOR_IR_EN_Pin, GPIO_PIN_RESET);
+#define SENSOR_IR_DIS	HAL_GPIO_WritePin(SENSOR_IR_EN_GPIO_Port, SENSOR_IR_EN_Pin, GPIO_PIN_SET);
+#define SENSOR_PT_EN	HAL_GPIO_WritePin(SENSOR_PT_EN_GPIO_Port, SENSOR_PT_EN_Pin, GPIO_PIN_RESET);
+#define SENSOR_PT_DIS	HAL_GPIO_WritePin(SENSOR_PT_EN_GPIO_Port, SENSOR_PT_EN_Pin, GPIO_PIN_SET);
+
 
 typedef struct {
 	GPIO_TypeDef *GPIO_Port;
@@ -32,7 +35,7 @@ Sensor_Mux_Pin_t Sensor_Mux_Pin[] = { { .GPIO_Port = SENSOR_MUX0_GPIO_Port,
 volatile SensorDataTypeDef ir_sensor = { .idx = 0, .raw = { 0 }, .blackmax = { 0 },
 		.whitemax = { 0 }, .normalized = { 0 }, .state = 0, .threshold = 100 };
 
-uint16_t adc3_buf[3] = { 0 };
+__attribute__((section(".non_cacheable_d3"))) uint16_t adc3_buffer[3];
 
 void Sensor_Printf(uint8_t idx, volatile uint16_t *sensor_data){
 	LCD_Printf(8 * (idx & 0x1), idx / 2 + 1, "0x%03X", *(sensor_data + idx));
@@ -40,7 +43,8 @@ void Sensor_Printf(uint8_t idx, volatile uint16_t *sensor_data){
 
 void Sensor_Start() {
 	ir_sensor.idx = 0;
-    HAL_StatusTypeDef ret = HAL_ADC_Start_DMA(&hadc3, (uint32_t*)adc3_buf, 3);
+	HAL_ADCEx_Calibration_Start(&hadc3, ADC_CALIB_OFFSET, ADC_SINGLE_ENDED);
+    HAL_StatusTypeDef ret = HAL_ADC_Start_DMA(&hadc3, (uint32_t*)adc3_buffer, 3);
     if (ret != HAL_OK) {
         while(1) LED_TOGGLE;
     }
@@ -77,14 +81,18 @@ __STATIC_INLINE void Get_Data_from_DMA(volatile SensorDataTypeDef *sensor,
 
 void TIM7_IRQ_Handler() {
 	Set_Mux_Channel(&ir_sensor);
-	__HAL_TIM_SET_COUNTER(&htim2, 0);
+	SENSOR_IR_EN;
+	SENSOR_PT_EN;
+//	TIM2->SR = 0;
+//	TIM2->CNT = 0;
+//	TIM2->CR1 |= TIM_CR1_CEN;
 	HAL_TIM_Base_Start(&htim2);
 }
 
 void ADC3_IRQ_Handler() {
+	Get_Data_from_DMA(&ir_sensor, adc3_buffer);
 	SENSOR_IR_DIS;
-	Get_Data_from_DMA(&ir_sensor, adc3_buf);
-
+	SENSOR_PT_EN
 	ir_sensor.idx = (ir_sensor.idx + 1) & 0x0F;
 }
 
@@ -93,7 +101,7 @@ void Sensor_Calibration() {
 	uint8_t i = 0;
 	LCD_Printf(0, 0, "White Max");
 	while (Button_Get_Input() != INPUT_CMD_K_HOLD) {
-		LCD_Printf(0, 12, "%d", ir_sensor.idx);
+		LCD_Printf(0, 10, "%02d", ir_sensor.idx);
 		if (ir_sensor.whitemax[i] < ir_sensor.raw[i]) {
 			ir_sensor.whitemax[i] = ir_sensor.raw[i];
 		}
@@ -107,7 +115,7 @@ void Sensor_Calibration() {
 	LCD_Printf(0, 0, "Black Max");
 
 	while (Button_Get_Input() != INPUT_CMD_K_HOLD) {
-		LCD_Printf(0, 12, "%d", ir_sensor.idx);
+		LCD_Printf(0, 10, "%02d", ir_sensor.idx);
 
 		if (ir_sensor.blackmax[i] < ir_sensor.raw[i]) {
 			ir_sensor.blackmax[i] = ir_sensor.raw[i];
@@ -127,7 +135,7 @@ void Sensor_Raw_Printf() {
 	LCD_Printf(0, 0, "Sensor Raw");
 
 	while(Button_Get_Input() != INPUT_CMD_K_HOLD) {
-		LCD_Printf(0, 12, "%d", ir_sensor.idx);
+		LCD_Printf(0, 10, "%02d", ir_sensor.idx);
 		Sensor_Printf(i, ir_sensor.raw);
 		i = (i + 1) % 18;
 	}

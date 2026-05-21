@@ -41,6 +41,16 @@ ST7789_IO_t st7789_pIO = { lcd7789_init, 0, 0, lcd7789_writereg,
 		lcd7789_readreg, lcd7789_senddata, lcd7789_recvdata, lcd7789_gettick };
 
 ST7789_Object_t st7789_pObj;
+
+/* SPI4 BDMA 전용 D3 메모리 버퍼 (캐시 불가 영역) */
+#define SPI_DMA_BUF_SIZE 1024
+__attribute__((section(".non_cacheable_d3")))      uint8_t spi4_tx_buf[SPI_DMA_BUF_SIZE];
+__attribute__((section(".non_cacheable_d3")))      uint8_t spi4_rx_buf[SPI_DMA_BUF_SIZE];
+
+/* SD 카드 파일 읽기 전용 버퍼 (D2 캐시 불가 영역에 강제 할당) */
+__attribute__((section(".non_cacheable_d2")))  uint8_t sd_row_buffer[240 * 3];
+__attribute__((section(".non_cacheable_d2")))  uint16_t sd_lcd_buffer[240];
+
 void LCD7789_Test(void) {
 
 #if defined(TFT135x240)
@@ -59,27 +69,35 @@ void LCD7789_Test(void) {
 	ST7789_LCD_Driver.FillRect(&st7789_pObj, 0, 0, ST7789Ctx.Width,
 			ST7789Ctx.Height, BLACK);
 
-	LCD7789_SetBrightness(0);
+	LCD7789_Clear();
+	FRESULT res = SDCard_Mount(); // 반환값 저장
+	if (res != FR_OK) {
+		// 에러 코드를 화면에 출력 (예: "Mount Fail: 3" -> FR_NOT_READY)
+		LCD7789_Printf(0, 0, "Mount Fail: %d", res);
+		while (HAL_GPIO_ReadPin(KEY_GPIO_Port, KEY_Pin) != GPIO_PIN_SET)
+			;
+	} else {
+		LCD7789_Printf(0, 0, "No Picture");
+		LCD7789_Display_Random_BMP_From_SD("/display");
 
-	LCD7789_Display_Random_BMP_From_SD("/display");
+		uint32_t tick = get_tick();
+		while (HAL_GPIO_ReadPin(KEY_GPIO_Port, KEY_Pin) != GPIO_PIN_SET) {
+			delay_ms(10);
 
-	uint32_t tick = get_tick();
-	while (HAL_GPIO_ReadPin(KEY_GPIO_Port, KEY_Pin) != GPIO_PIN_SET) {
-		delay_ms(10);
+			uint32_t elapsed = get_tick() - tick;
 
-		uint32_t elapsed = get_tick() - tick;
-
-		if (elapsed <= 1000) {
-			LCD7789_SetBrightness(elapsed * LCD7789_BACK_BRIGHT / 1000);
-		} else if (elapsed <= 3000) {
-			LCD7789_SetBrightness(LCD7789_BACK_BRIGHT);
-			ST7789_LCD_Driver.FillRect(&st7789_pObj, 0, ST7789Ctx.Height - 5,
-					(elapsed - 1000) * ST7789Ctx.Width / 2000, 5, 0xFFFF);
-		} else if (elapsed > 3000) {
-			break;
+			if (elapsed <= 1000) {
+				LCD7789_SetBrightness(elapsed * LCD7789_BACK_BRIGHT / 1000);
+			} else if (elapsed <= 3000) {
+				LCD7789_SetBrightness(LCD7789_BACK_BRIGHT);
+				ST7789_LCD_Driver.FillRect(&st7789_pObj, 0,
+						ST7789Ctx.Height - 5,
+						(elapsed - 1000) * ST7789Ctx.Width / 2000, 5, 0xFFFF);
+			} else if (elapsed > 3000) {
+				break;
+			}
 		}
 	}
-
 	while (HAL_GPIO_ReadPin(KEY_GPIO_Port, KEY_Pin) == GPIO_PIN_SET) {
 		delay_ms(10);
 	}
@@ -300,7 +318,7 @@ void LCD7789_Printf(uint16_t x, uint16_t y, const char *text, ...) {
 	vsprintf(txt, text, args);
 	va_end(args);
 
-	// 고정 크기 지정 (ST7735 시절의 고정 렌더링 스타일. 필요시 12나 16으로 변경 가능)
+// 고정 크기 지정 (ST7735 시절의 고정 렌더링 스타일. 필요시 12나 16으로 변경 가능)
 	static uint8_t fixed_size = 16;
 	static uint8_t x_bias;
 	static uint8_t y_bias;
@@ -321,8 +339,9 @@ void LCD7789_Printf(uint16_t x, uint16_t y, const char *text, ...) {
 		offset_y = 0;
 	}
 
-	LCD7789_ShowString(x_bias * x + offset_x, y_bias * y + offset_y, ST7789Ctx.Width - x,
-			ST7789Ctx.Height - y, fixed_size, (uint8_t*) txt);
+	LCD7789_ShowString(x_bias * x + offset_x, y_bias * y + offset_y,
+			ST7789Ctx.Width - x, ST7789Ctx.Height - y, fixed_size,
+			(uint8_t*) txt);
 }
 
 static int32_t lcd7789_init(void) {
@@ -338,7 +357,8 @@ static int32_t lcd7789_writereg(uint8_t reg, uint8_t *pdata, uint32_t length) {
 	int32_t result;
 	LCD_CS_RESET;
 	LCD_RS_RESET;
-	// 레지스터 주소(1바이트)는 폴링으로 전송하는 것이 효율적입니다.
+
+	// 레지스터 주소는 1바이트이므로 폴링 전송
 	result = HAL_SPI_Transmit(SPI_Drv, &reg, 1, 100);
 	LCD_RS_SET;
 
@@ -347,10 +367,22 @@ static int32_t lcd7789_writereg(uint8_t reg, uint8_t *pdata, uint32_t length) {
 		uint8_t *ptr = pdata;
 
 		while (remaining > 0) {
-			uint16_t chunk = (remaining > 65535) ? 65535 : (uint16_t) remaining;
-			HAL_SPI_Transmit_DMA(SPI_Drv, ptr, chunk);
+			uint16_t chunk =
+					(remaining > SPI_DMA_BUF_SIZE) ?
+					SPI_DMA_BUF_SIZE :
+														(uint16_t) remaining;
 
-			// DMA 전송 완료 대기
+			// 1. 데이터를 D3 버퍼로 복사 (이때 데이터는 D-Cache에 머물러 있을 수 있음)
+			memcpy(spi4_tx_buf, ptr, chunk);
+
+			// 2. [핵심 추가] 캐시의 내용을 물리 메모리(SRAM4)로 강제 밀어내기!
+			// Cortex-M7의 캐시 라인은 32바이트 단위이므로, 크기를 32의 배수로 올림 처리합니다.
+			SCB_CleanDCache_by_Addr((uint32_t*) spi4_tx_buf,
+					(chunk + 31) & ~31);
+
+			// 3. 물리 메모리에 데이터가 확실히 쓰였으므로 BDMA 전송 시작
+			HAL_SPI_Transmit_DMA(SPI_Drv, spi4_tx_buf, chunk);
+
 			while (HAL_SPI_GetState(SPI_Drv) != HAL_SPI_STATE_READY) {
 			}
 
@@ -369,10 +401,8 @@ static int32_t lcd7789_readreg(uint8_t reg, uint8_t *pdata) {
 	result = HAL_SPI_Transmit(SPI_Drv, &reg, 1, 100);
 	LCD_RS_SET;
 
-	// 읽기는 보통 1바이트이므로 폴링 유지 또는 DMA 적용 가능
-	result += HAL_SPI_Receive_DMA(SPI_Drv, pdata, 1);
-	while (HAL_SPI_GetState(SPI_Drv) != HAL_SPI_STATE_READY) {
-	}
+	// 읽기는 보통 1바이트이므로 폴링 유지 (성능상 이득)
+	result += HAL_SPI_Receive(SPI_Drv, pdata, 1, 100);
 
 	LCD_CS_SET;
 	return result > 0 ? -1 : 0;
@@ -384,8 +414,20 @@ static int32_t lcd7789_senddata(uint8_t *pdata, uint32_t length) {
 	uint8_t *ptr = pdata;
 
 	while (remaining > 0) {
-		uint16_t chunk = (remaining > 65535) ? 65535 : (uint16_t) remaining;
-		HAL_SPI_Transmit_DMA(SPI_Drv, ptr, chunk);
+		uint16_t chunk =
+				(remaining > SPI_DMA_BUF_SIZE) ?
+				SPI_DMA_BUF_SIZE :
+													(uint16_t) remaining;
+
+		// 1. 데이터를 D3 버퍼로 복사 (이때 데이터는 D-Cache에 머물러 있을 수 있음)
+		memcpy(spi4_tx_buf, ptr, chunk);
+
+		// 2. [핵심 추가] 캐시의 내용을 물리 메모리(SRAM4)로 강제 밀어내기!
+		// Cortex-M7의 캐시 라인은 32바이트 단위이므로, 크기를 32의 배수로 올림 처리합니다.
+		SCB_CleanDCache_by_Addr((uint32_t*) spi4_tx_buf, (chunk + 31) & ~31);
+
+		// 3. 물리 메모리에 데이터가 확실히 쓰였으므로 BDMA 전송 시작
+		HAL_SPI_Transmit_DMA(SPI_Drv, spi4_tx_buf, chunk);
 
 		while (HAL_SPI_GetState(SPI_Drv) != HAL_SPI_STATE_READY) {
 		}
@@ -403,8 +445,20 @@ static int32_t lcd7789_recvdata(uint8_t *pdata, uint32_t length) {
 	uint8_t *ptr = pdata;
 
 	while (remaining > 0) {
-		uint16_t chunk = (remaining > 65535) ? 65535 : (uint16_t) remaining;
-		HAL_SPI_Receive_DMA(SPI_Drv, ptr, chunk);
+		uint16_t chunk =
+				(remaining > SPI_DMA_BUF_SIZE) ?
+				SPI_DMA_BUF_SIZE :
+													(uint16_t) remaining;
+
+		// 1. 데이터를 D3 버퍼로 복사 (이때 데이터는 D-Cache에 머물러 있을 수 있음)
+		memcpy(spi4_tx_buf, ptr, chunk);
+
+		// 2. [핵심 추가] 캐시의 내용을 물리 메모리(SRAM4)로 강제 밀어내기!
+		// Cortex-M7의 캐시 라인은 32바이트 단위이므로, 크기를 32의 배수로 올림 처리합니다.
+		SCB_CleanDCache_by_Addr((uint32_t*) spi4_tx_buf, (chunk + 31) & ~31);
+
+		// 3. 물리 메모리에 데이터가 확실히 쓰였으므로 BDMA 전송 시작
+		HAL_SPI_Transmit_DMA(SPI_Drv, spi4_tx_buf, chunk);
 
 		while (HAL_SPI_GetState(SPI_Drv) != HAL_SPI_STATE_READY) {
 		}
@@ -423,10 +477,14 @@ void LCD7789_Clear() {
 	LCD7789_Light(900, 250);
 }
 
+static __attribute__((section(".non_cacheable_d2"))) DIR dir;
+static __attribute__((section(".non_cacheable_d2"))) FILINFO fno;
+static __attribute__((section(".non_cacheable_d2"))) FIL file;
+
 void LCD7789_Display_Random_BMP_From_SD(const TCHAR *address) {
 	FRESULT res;
-	DIR dir;
-	FILINFO fno;
+//	DIR dir;
+//	FILINFO fno;
 	int bmp_count = 0;
 	uint16_t y_pos = 5;
 
@@ -503,7 +561,7 @@ void LCD7789_Display_Random_BMP_From_SD(const TCHAR *address) {
 //	LCD7789_Printf(5, y_pos, "File: %s", short_name);
 	y_pos += 15;
 
-	FIL file;
+//	FIL file;
 	UINT bytesRead;
 	uint8_t header[54];
 
@@ -540,23 +598,27 @@ void LCD7789_Display_Random_BMP_From_SD(const TCHAR *address) {
 //	LCD7789_Clear();
 
 	f_lseek(&file, dataOffset);
-	uint8_t rowBuffer[240 * 3];
-	uint16_t lcdBuffer[240];
+//	uint8_t rowBuffer[240 * 3];
+//	uint16_t lcdBuffer[240];
 	int padding = (4 - ((width * 3) % 4)) % 4;
 
+	// 함수 내부에 있던 uint8_t rowBuffer... 선언은 삭제합니다.
+
 	for (int y = height - 1; y >= 0; y--) {
-		f_read(&file, rowBuffer, (width * 3) + padding, &bytesRead);
+		// 이제 스택이 아닌 D2 캐시 불가 영역으로 직접 읽어옵니다.
+		f_read(&file, sd_row_buffer, (width * 3) + padding, &bytesRead);
+
 		for (int x = 0; x < width; x++) {
-			uint8_t b = rowBuffer[x * 3];
-			uint8_t g = rowBuffer[x * 3 + 1];
-			uint8_t r = rowBuffer[x * 3 + 2];
+			uint8_t b = sd_row_buffer[x * 3];
+			uint8_t g = sd_row_buffer[x * 3 + 1];
+			uint8_t r = sd_row_buffer[x * 3 + 2];
 
 			uint16_t color = ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3);
-			lcdBuffer[x] = (color >> 8) | (color << 8);
+			sd_lcd_buffer[x] = (color >> 8) | (color << 8);
 		}
 		if (y < ST7789Ctx.Height && width <= ST7789Ctx.Width) {
 			ST7789_LCD_Driver.FillRGBRect(&st7789_pObj, 0, y,
-					(uint8_t*) lcdBuffer, width, 1);
+					(uint8_t*) sd_lcd_buffer, width, 1);
 		}
 	}
 
