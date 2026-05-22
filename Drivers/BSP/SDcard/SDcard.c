@@ -1,14 +1,7 @@
-/*
- * SDcard.c
- *
- *  Created on: 2026. 4. 15.
- *      Author: kth59
- */
-
 #include "SDcard.h"
 
 extern FATFS SDFatFS;
-__attribute__((section(".non_cacheable_d2"))) FIL file;
+FIL file;
 
 // =====================
 // SD카드 마운트

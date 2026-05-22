@@ -20,7 +20,7 @@
 
 uint8_t retSD;    /* Return value for SD */
 char SDPath[4];   /* SD logical drive path */
-__attribute__((section(".non_cacheable_d2"))) FATFS SDFatFS;
+FATFS SDFatFS;    /* File system object for SD logical drive */
 FIL SDFile;       /* File object for SD */
 
 /* USER CODE BEGIN Variables */

@@ -69,7 +69,8 @@ void LCD7789_Test(void) {
 	ST7789_LCD_Driver.FillRect(&st7789_pObj, 0, 0, ST7789Ctx.Width,
 			ST7789Ctx.Height, BLACK);
 
-	LCD7789_Clear();
+	ST7789_SetBrightness(&st7789_pObj, 0);
+
 	FRESULT res = SDCard_Mount(); // 반환값 저장
 	if (res != FR_OK) {
 		// 에러 코드를 화면에 출력 (예: "Mount Fail: 3" -> FR_NOT_READY)
@@ -495,13 +496,13 @@ void LCD7789_Display_Random_BMP_From_SD(const TCHAR *address) {
 //	y_pos += 15;
 
 	if (SDCard_Mount() != FR_OK) {
-		LCD7789_Printf(5, y_pos, "ERR: SD Mount");
+		LCD7789_Printf(0, y_pos, "ERR: SD Mount");
 		return;
 	}
 
 	res = f_opendir(&dir, address);
 	if (res != FR_OK) {
-		LCD7789_Printf(5, y_pos, "ERR: Open Dir %d", res);
+		LCD7789_Printf(0, y_pos, "ERR: Open Dir %d", res);
 		SDCard_Unmount();
 		return;
 	}
@@ -520,7 +521,7 @@ void LCD7789_Display_Random_BMP_From_SD(const TCHAR *address) {
 //	y_pos += 15;
 
 	if (bmp_count == 0) {
-		LCD7789_Printf(5, y_pos, "ERR: No BMPs");
+		LCD7789_Printf(0, y_pos, "ERR: No BMPs");
 		SDCard_Unmount();
 		return;
 	}
@@ -567,7 +568,7 @@ void LCD7789_Display_Random_BMP_From_SD(const TCHAR *address) {
 
 	res = f_open(&file, full_path, FA_READ);
 	if (res != FR_OK) {
-		LCD7789_Printf(5, y_pos, "ERR: File Open %d", res);
+		LCD7789_Printf(0, y_pos, "ERR: File Open %d", res);
 		SDCard_Unmount();
 		return;
 	}
@@ -587,7 +588,7 @@ void LCD7789_Display_Random_BMP_From_SD(const TCHAR *address) {
 //	y_pos += 15;
 
 	if (bitDepth != 24) {
-		LCD7789_Printf(5, y_pos, "ERR: Not 24bit!");
+		LCD7789_Printf(0, y_pos, "ERR: Not 24bit!");
 		f_close(&file);
 		SDCard_Unmount();
 		return;
